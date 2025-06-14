@@ -2,10 +2,11 @@ from pyspark.sql import SparkSession
 
 spark = SparkSession.builder \
     .master("local[*]") \
+    .config("spark.hadoop.mapreduce.input.fileinputformat.input.dir.recursive", "true") \
     .appName("DebugAuth") \
     .getOrCreate()
 # Absolute path to your directory containing text files
-text_dir = "file:///opt/bitnami/spark/jobs/test.csv"
+text_dir = "file:///opt/bitnami/spark/jobs/input/"
 
 #df = spark.read.text(text_dir)
 
