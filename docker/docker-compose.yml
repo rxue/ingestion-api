@@ -16,6 +16,26 @@ services:
       - "7077:7077"
     networks:
       - spark-net
+  
+  broker:
+    image: quay.io/artemiscloud/activemq-artemis-broker:1.0.25
+    container_name: quarkus-broker
+    environment:
+      - AMQ_USER=quarkus
+      - AMQ_PASSWORD=quarkus
+    ports:
+      - "8161:8161"
+      - "6161:6161"
+      - "5672:5672"
+    networks:
+      - spark-net
+
+  async-api-endpoint:
+    build:
+      context: ../java/async-api-endpoint
+      dockerfile: src/main/docker/Dockerfile.legacy-jar
+    ports:
+      - "8080:8080"
 
 networks:
   spark-net:
