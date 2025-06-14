@@ -5,5 +5,5 @@
 #### Docker image of `bitnami/spark:3.5` has authentication problem
 Authentication problem of `bitnami/spark:3.5` causes Spark job not be able to read data from input file, so use `3.4` instead
 
-### `docker exec -it spark-master spark-submit --conf spark.jars.ivy=/tmp/.ivy --master spark://spark-master:7077 /home/test.py`
+### `docker exec -it spark-master spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/jobs/local_test.py`
 
