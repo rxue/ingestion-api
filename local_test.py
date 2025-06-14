@@ -1,4 +1,4 @@
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, Row
 
 spark = SparkSession.builder \
     .master("local[*]") \
@@ -8,22 +8,40 @@ spark = SparkSession.builder \
 # Absolute path to your directory containing text files
 text_dir = "file:///opt/bitnami/spark/jobs/input/"
 
-#df = spark.read.text(text_dir)
+originalRdd = spark.sparkContext.wholeTextFiles(text_dir)
 
+def parse_email(file_pair):
+    filename, content = file_pair
+    fields = {
+        "from": None,
+        "to": None,
+        "subject": None,
+        "date": None
+    }
 
-# Example: Simple word count
-#words = text_rdd.flatMap(lambda line: line.split())
-#word_counts = words.map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
+    for line in content.splitlines():
+        if line.startswith("From: "):
+            fields["from"] = line[len("From: "):].strip()
+        elif line.startswith("To: "):
+            fields["to"] = line[len("To: "):].strip()
+        elif line.startswith("Subject: "):
+            fields["subject"] = line[len("Subject: "):].strip()
+        elif line.startswith("Date: "):
+            fields["date"] = line[len("Date: "):].strip()
+    
+    return Row(**fields)
+#Parse the original RDD to structured RDD so that it can be used to create a Data Frame
+parsed_rdd = originalRdd.map(parse_email)
 
-# Show top 20 words
-#for word, count in word_counts.take(20):
-#    print(f"{word}: {count}")
+#Convert to DataFrame
+emails_df = spark.createDataFrame(parsed_rdd)
 
+#Query with Spark SQL
+emails_df.createOrReplaceTempView("emails")
 
-# Read all text files in the directory as one RDD
+result_df = spark.sql("SELECT count(*), from FROM emails GROUP BY from")
 
-rdd = spark.sparkContext.textFile(text_dir)
-print("Line count:", rdd.count())
+result_df.show(truncate=False)
 
 # Stop the session
 spark.stop()
