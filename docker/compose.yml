@@ -34,8 +34,11 @@ services:
     build:
       context: ../java/async-api-endpoint
       dockerfile: src/main/docker/Dockerfile.legacy-jar
+    container_name: async-api-endpoint
     ports:
       - "8080:8080"
+    networks:
+      - spark-net
 
 networks:
   spark-net:
