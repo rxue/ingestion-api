@@ -11,3 +11,7 @@ there are several `Dockerfile`, which can be used out of the box without any mod
 
 #### Quarkus project can be built into *native executable*
 Resource: https://quarkus.io/guides/building-native-image
+
+### 20250615
+#### A flaw of `mvn package` without `clean`
+When running `mvn package` without `clean`, changes in the `src/main/resources/application.properties` cannot come to the newly generated jar or war
