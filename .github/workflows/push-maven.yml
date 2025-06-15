@@ -1,0 +1,31 @@
+name: Maven Package
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Set up Submodule
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+        settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+    - name: test async-api-endpoint module
+      run: mvn -B --file java/async-api-endpoint/pom.xml clean test
+    - name: test ingestion-manager module
+      run: mvn -B --file java/ingestion-manager/pom.xml clean test
