@@ -15,42 +15,52 @@ services:
       - "8080:8080"
       - "7077:7077"
     networks:
-      - spark-net
+      - ingestion-net
   
   broker:
     image: quay.io/artemiscloud/activemq-artemis-broker:1.0.25
     container_name: quarkus-broker
     environment:
-      - AMQ_USER=quarkus
-      - AMQ_PASSWORD=quarkus
+      - AMQ_USER
+      - AMQ_PASSWORD
     ports:
       - "8161:8161"
       - "6161:6161"
       - "5672:5672"
     networks:
-      - spark-net
+      - ingestion-net
 
   async-api-endpoint:
     build:
       context: ../java/async-api-endpoint
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: async-api-endpoint
+    environment:
+      - QUEUE_NAME
+      - QUARKUS_QPID_JMS_USERNAME
+      - QUARKUS_QPID_JMS_PASSWORD
+      - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:5672
     ports:
       - "8080:8080"
     networks:
-      - spark-net
+      - ingestion-net
 
   ingestion-manager:
     build:
       context: ../java/ingestion-manager
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: ingestion-manager
+    environment:
+      - QUEUE_NAME
+      - QUARKUS_QPID_JMS_USERNAME
+      - QUARKUS_QPID_JMS_PASSWORD
+      - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:61616
     networks:
-      - spark-net
+      - ingestion-net
 
 
 
 
 networks:
-  spark-net:
+  ingestion-net:
     driver: bridge
