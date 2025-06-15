@@ -1,0 +1,15 @@
+.mvn
+java/*/*.iml
+java/*/*.idea
+java/*/*.dockerignore
+java/*/target/
+java/async-api-endpoint/mvnw
+java/async-api-endpoint/mvnw.cmd
+java/async-api-endpoint/src/main/docker/Dockerfile.jvm
+java/async-api-endpoint/src/main/docker/Dockerfile.native
+java/async-api-endpoint/src/main/docker/Dockerfile.native-micro
+java/ingestion-manager/mvnw
+java/ingestion-manager/mvnw.cmd
+java/ingestion-manager/src/main/docker/Dockerfile.jvm
+java/ingestion-manager/src/main/docker/Dockerfile.native
+java/ingestion-manager/src/main/docker/Dockerfile.native-micro

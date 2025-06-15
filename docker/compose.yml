@@ -40,6 +40,17 @@ services:
     networks:
       - spark-net
 
+  ingestion-manager:
+    build:
+      context: ../java/ingestion-manager
+      dockerfile: src/main/docker/Dockerfile.legacy-jar
+    container_name: ingestion-manager
+    networks:
+      - spark-net
+
+
+
+
 networks:
   spark-net:
     driver: bridge
