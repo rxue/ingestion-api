@@ -15,34 +15,32 @@ public class IngestionManager implements Runnable {
     @Inject
     ConnectionFactory connectionFactory;
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService dispatcher = Executors.newSingleThreadExecutor();
+
+    private final ExecutorService executors = Executors.newFixedThreadPool(5);
 
     private volatile String dataSourceURL;
 
-    public String getDataSourceURL() {
-        return dataSourceURL;
-    }
-
     void onStart(@Observes StartupEvent ev) {
-        executor.submit(this);
+        dispatcher.submit(this);
     }
 
     void onStop(@Observes ShutdownEvent ev) {
-        executor.shutdown();
+        dispatcher.shutdown();
     }
 
     @Override
     public void run() {
         System.out.println("THREAD ID: " + Thread.currentThread().getId());
         try (JMSContext context = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
-            JMSConsumer consumer = context.createConsumer(context.createQueue("task"));
+            JMSConsumer consumer = context.createConsumer(context.createQueue("ingestion"));
             while (true) {
                 Message message = consumer.receive();
                 if (message == null) {
                     return;
                 }
                 dataSourceURL = message.getBody(String.class);
-                System.out.println("received:::::" + dataSourceURL);
+                executors.submit(new Executor(dataSourceURL));
             }
         } catch (JMSException e) {
             throw new RuntimeException(e);
