@@ -10,7 +10,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.io.IOException;
 
 @Path("/ingestion")
-public class TaskProducer {
+public class IngestionResource {
 
     private String queueName;
 
@@ -18,7 +18,7 @@ public class TaskProducer {
 
     private Monitor monitor;
     @Inject
-    public TaskProducer(@ConfigProperty(name = "QUEUE_NAME") String queueName, ConnectionFactory connectionFactory, Monitor monitor) {
+    public IngestionResource(@ConfigProperty(name = "QUEUE_NAME") String queueName, ConnectionFactory connectionFactory, Monitor monitor) {
         this.queueName = queueName;
         this.connectionFactory = connectionFactory;
         this.monitor = monitor;
@@ -30,7 +30,6 @@ public class TaskProducer {
     public String send(String dataSourceURL) {
         try (JMSContext context = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
             context.createProducer().send(context.createQueue(queueName), dataSourceURL);
-            System.out.println("task started");
         }
         return "sent";
     }
