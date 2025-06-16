@@ -6,7 +6,3 @@ downloadDataSet() {
   echo "Extract to the Docker volume for the Spark to ingest"
   tar -xzf $originalFileName -C ~/dockervolume/spark/input/
 }
-
-startSpark() {
-  docker compose up -d spark-master spark-worker-1 spark-worker-2
-}
