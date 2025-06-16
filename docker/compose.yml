@@ -17,7 +17,10 @@ services:
       context: ../java/async-api-endpoint
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: async-api-endpoint
+    volumes:
+      - ${HOME_PATH}/dockervolume/ingestion:/home/default
     environment:
+      - DATA_PATH=/home/default
       - QUEUE_NAME
       - QUARKUS_QPID_JMS_USERNAME
       - QUARKUS_QPID_JMS_PASSWORD
@@ -39,9 +42,6 @@ services:
       - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:61616
     networks:
       - ingestion-net
-
-
-
 
 networks:
   ingestion-net:
