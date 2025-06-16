@@ -1,15 +1,12 @@
 from pyspark.sql import SparkSession, Row
 
 spark = SparkSession.builder \
-    .master("local[*]") \
     .config("spark.hadoop.mapreduce.input.fileinputformat.input.dir.recursive", "true") \
     .appName("DebugAuth") \
     .getOrCreate()
 # Absolute path to your directory containing text files
 text_dir = "file:///opt/bitnami/spark/jobs/input/"
-
 originalRdd = spark.sparkContext.wholeTextFiles(text_dir)
-
 def parse_email(file_pair):
     filename, content = file_pair
     fields = {
@@ -30,17 +27,16 @@ def parse_email(file_pair):
             fields["date"] = line[len("Date: "):].strip()
     
     return Row(**fields)
-#Parse the original RDD to structured RDD so that it can be used to create a Data Frame
+print("Parse the original RDD to structured RDD so that it can be used to create a Data Frame")
 parsed_rdd = originalRdd.map(parse_email)
-
-#Convert to DataFrame
+print("Convert to data frame")
 emails_df = spark.createDataFrame(parsed_rdd)
 
-#Query with Spark SQL
+print("Query with Spark SQL")
 emails_df.createOrReplaceTempView("emails")
 
 result_df = spark.sql("SELECT count(*), from FROM emails GROUP BY from")
-
+print("Got result data frame")
 result_df.show(truncate=False)
 
 # Stop the session

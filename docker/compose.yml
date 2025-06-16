@@ -1,8 +1,6 @@
 services:
   spark-master:
     image: bitnami/spark:3.4
-    volumes:
-      - ${HOME_PATH}/dockervolume/spark:/opt/bitnami/spark/jobs
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -12,11 +10,35 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_NO_DAEMONIZE=yes
     ports:
-      - "8080:8080"
+      - "8088:8080"
       - "7077:7077"
+    volumes:
+      - ${HOME_PATH}/dockervolume/spark:/opt/bitnami/spark/jobs
+    networks:
+      - ingestion-net
+
+  spark-worker-1:
+    image: bitnami/spark:3.4
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ${HOME_PATH}/dockervolume/spark:/opt/bitnami/spark/jobs
     networks:
       - ingestion-net
   
+  spark-worker-2:
+    image: bitnami/spark:3.4
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ${HOME_PATH}/dockervolume/spark:/opt/bitnami/spark/jobs
+    networks:
+      - ingestion-net
+
   broker:
     image: quay.io/artemiscloud/activemq-artemis-broker:1.0.25
     container_name: quarkus-broker
