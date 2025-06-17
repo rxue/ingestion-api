@@ -15,3 +15,13 @@ Resource: https://quarkus.io/guides/building-native-image
 ### 20250615
 #### A flaw of `mvn package` without `clean`
 When running `mvn package` without `clean`, changes in the `src/main/resources/application.properties` cannot come to the newly generated jar or war
+
+### 20250617
+#### `java.lang.reflect.Proxy.newProxyInstance` can only work with class with `interface`
+Example code where `HttpFileDownloader implements IHttpFileDownloader`
+```
+IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyInstance(
+  IHttpFileDownloader.class.getClassLoader(),
+  new Class[]{IHttpFileDownloader.class},
+  new StateLogger(new HttpFileDownloader()));
+```
