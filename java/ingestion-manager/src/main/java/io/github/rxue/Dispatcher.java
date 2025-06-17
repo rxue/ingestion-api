@@ -15,15 +15,22 @@ import java.util.concurrent.Executors;
 
 @ApplicationScoped
 public class Dispatcher implements Runnable {
-    @Inject
-    ConnectionFactory connectionFactory;
+    private final ConnectionFactory connectionFactory;
 
-    @ConfigProperty(name = "QUEUE_NAME")
-    private String queueName;
+    private final String queueName;
 
-    @ConfigProperty(name = "DOWNLOAD_DIR")
-    private String downloadDirectory;
+    private final String downloadDirectory;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    @Inject
+    public Dispatcher(ConnectionFactory connectionFactory,
+                      @ConfigProperty(name = "QUEUE_NAME") String queueName,
+                      @ConfigProperty(name = "DOWNLOAD_DIR") String downloadDirectory) {
+        this.connectionFactory = connectionFactory;
+        this.queueName = queueName;
+        this.downloadDirectory = downloadDirectory;
+    }
 
     void onStart(@Observes StartupEvent ev) {
         executor.submit(this);
