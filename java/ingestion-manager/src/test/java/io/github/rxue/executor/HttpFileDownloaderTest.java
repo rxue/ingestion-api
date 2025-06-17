@@ -1,11 +1,11 @@
-package io.github.rxue;
+package io.github.rxue.executor;
 
 import org.junit.jupiter.api.*;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import io.github.rxue.HttpFileDownloader.Range;
+import io.github.rxue.executor.HttpFileDownloader.Range;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpFileDownloaderTest {

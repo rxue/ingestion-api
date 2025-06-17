@@ -1,4 +1,4 @@
-package io.github.rxue;
+package io.github.rxue.executor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,8 +25,8 @@ public class HttpFileDownloader {
     public HttpFileDownloader() {
         this.httpClient = HttpClient.newHttpClient();
     }
-
     public void download(String urlString, long chunkSize, Path targetDirectory) {
+        System.out.println("DOWN!!!!");
         final URI uri =URI.create(urlString);
         final long byteLength;
         try {

@@ -18,7 +18,7 @@ services:
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: async-api-endpoint
     volumes:
-      - ${HOME_PATH}/dockervolume/ingestion:/home/default
+      - ${HOME_PATH}/dockervolume/ingestion:${DOWNLOAD_DIR}
     environment:
       - DATA_PATH=/home/default
       - QUEUE_NAME
@@ -35,11 +35,14 @@ services:
       context: ../java/ingestion-manager
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: ingestion-manager
+    volumes:
+      - ${HOME_PATH}/dockervolume/ingestion:${DOWNLOAD_DIR}
     environment:
       - QUEUE_NAME
       - QUARKUS_QPID_JMS_USERNAME
       - QUARKUS_QPID_JMS_PASSWORD
       - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:61616
+      - DOWNLOAD_DIR
     networks:
       - ingestion-net
 

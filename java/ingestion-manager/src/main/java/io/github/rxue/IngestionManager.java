@@ -1,5 +1,6 @@
 package io.github.rxue;
 
+import io.github.rxue.executor.Executor;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -8,6 +9,7 @@ import jakarta.inject.Inject;
 import jakarta.jms.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,12 +17,16 @@ import java.util.concurrent.Executors;
 public class IngestionManager implements Runnable {
     @Inject
     ConnectionFactory connectionFactory;
+
     @ConfigProperty(name = "QUEUE_NAME")
     private String queueName;
 
+    @ConfigProperty(name = "DOWNLOAD_DIR")
+    private String downloadDirectory;
     private final ExecutorService dispatcher = Executors.newSingleThreadExecutor();
 
     private final ExecutorService executors = Executors.newFixedThreadPool(5);
+
 
     private volatile String dataSourceURL;
 
@@ -34,7 +40,7 @@ public class IngestionManager implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("THREAD ID: " + Thread.currentThread().getId());
+        System.out.println("Manager with THREAD ID: " + Thread.currentThread().getId());
         try (JMSContext context = connectionFactory.createContext(JMSContext.AUTO_ACKNOWLEDGE)) {
             JMSConsumer consumer = context.createConsumer(context.createQueue(queueName));
             while (true) {
@@ -43,7 +49,7 @@ public class IngestionManager implements Runnable {
                     return;
                 }
                 dataSourceURL = message.getBody(String.class);
-                executors.submit(new Executor(dataSourceURL));
+                executors.submit(new Executor(Path.of(downloadDirectory), dataSourceURL));
             }
         } catch (JMSException e) {
             throw new RuntimeException(e);

@@ -1,4 +1,4 @@
-package io.github.rxue;
+package io.github.rxue.executor;
 
 import org.junit.jupiter.api.*;
 

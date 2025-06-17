@@ -1,4 +1,4 @@
-package io.github.rxue;
+package io.github.rxue.executor;
 
 import org.junit.jupiter.api.*;
 
@@ -13,11 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class MessageCounterTest {
-    public static final String TEST_DATA_DIR = "src/test/resources";
 
     @Test
     public void getSendersWithMessageCount_when_there_are_2_mails() {
-        MessageCounter messageCounter = new MessageCounter(Path.of(TEST_DATA_DIR, "testmail", "campbell-l", "north_crawar_remediation"));
+        MessageCounter messageCounter = new MessageCounter(Path.of(HttpFileDownloaderIT.TEST_DATA_DIR_STR, "testmail", "campbell-l", "north_crawar_remediation"));
         Map<Sender,Long> result = messageCounter.getSendersWithMessageCount();
         assertThat(result)
                 .hasSize(1);
@@ -27,8 +26,8 @@ class MessageCounterTest {
 
     @Test
     public void writeProcessedMessageCount_when_there_are_2_mails() throws IOException {
-        MessageCounter messageCounter = new MessageCounter(Path.of(TEST_DATA_DIR , "testmail", "campbell-l", "north_crawar_remediation"));
-        Path outputFilePath = Path.of(TEST_DATA_DIR, "status.txt");
+        MessageCounter messageCounter = new MessageCounter(Path.of(HttpFileDownloaderIT.TEST_DATA_DIR_STR, "testmail", "campbell-l", "north_crawar_remediation"));
+        Path outputFilePath = Path.of(HttpFileDownloaderIT.TEST_DATA_DIR_STR, "status.txt");
         messageCounter.writeProcessedMessageCount(outputFilePath);
         List<String> outputContent = Files.readAllLines(outputFilePath);
         assertThat(outputContent).hasSize(1);

@@ -1,4 +1,4 @@
-package io.github.rxue;
+package io.github.rxue.executor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,6 +23,16 @@ public class MessageCounter {
         try (Stream<Path> paths = Files.walk(inputDirectory)) {
             return paths.parallel().filter(MessageCounter::isRegularFile)
                     .map(MessageCounter::readSender)
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Map<String,Long> getSenderEmailsWithMessageCount() {
+        try (Stream<Path> paths = Files.walk(inputDirectory)) {
+            return paths.parallel().filter(MessageCounter::isRegularFile)
+                    .map(MessageCounter::readSenderEmails)
                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -55,6 +65,21 @@ public class MessageCounter {
         throw new IllegalStateException();
     }
 
+    private static String readSenderEmails(Path filePath) {
+        try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.ISO_8859_1)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("From: ")) {
+                    return line.split(" ")[1];
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Erratic File: " + filePath);
+            e.printStackTrace();
+        }
+        throw new IllegalStateException();
+    }
+
     private static String getName(String nameLine) {
         return nameLine.substring(nameLine.indexOf(" ") + 1);
     }
@@ -67,10 +92,17 @@ public class MessageCounter {
         Files.writeString(outputFilePath, totalMessages + " message(s) processed in total");
     }
 
-    public static List<Sender> getTopSenders(Map<Sender,Long> sendersWithMessageCount, int limit) {
+    static List<Sender> getTopSenders(Map<Sender,Long> sendersWithMessageCount, int limit) {
         return sendersWithMessageCount.keySet().stream()
                 .sorted(comparing(sendersWithMessageCount::get).reversed())
                 .limit(limit)
                 .toList();
+    }
+
+    public static void main(String[] args) {
+        MessageCounter messageCounter = new MessageCounter(Path.of("/","Users", "ruixue", "Downloads", "target", "maildir"));
+        Map<String,Long> emailsWithMessageCount = messageCounter.getSenderEmailsWithMessageCount();
+        String mail = "feedback@intcx.com";
+        System.out.println(mail + " has " + emailsWithMessageCount.get(mail) + " mails");
     }
 }
