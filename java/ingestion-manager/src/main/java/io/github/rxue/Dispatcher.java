@@ -23,19 +23,14 @@ public class Dispatcher implements Runnable {
 
     @ConfigProperty(name = "DOWNLOAD_DIR")
     private String downloadDirectory;
-    private final ExecutorService dispatcher = Executors.newSingleThreadExecutor();
-
-    private final ExecutorService executors = Executors.newCachedThreadPool();
-
-
-    private volatile String dataSourceURL;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     void onStart(@Observes StartupEvent ev) {
-        dispatcher.submit(this);
+        executor.submit(this);
     }
 
     void onStop(@Observes ShutdownEvent ev) {
-        dispatcher.shutdown();
+        executor.shutdown();
     }
 
     @Override
@@ -48,8 +43,8 @@ public class Dispatcher implements Runnable {
                 if (message == null) {
                     return;
                 }
-                dataSourceURL = message.getBody(String.class);
-                executors.submit(new IngestionRunner(Path.of(downloadDirectory), dataSourceURL));
+                IngestionRunner ingestionRunner = new IngestionRunner(Path.of(downloadDirectory), message.getBody(String.class));
+                ingestionRunner.run();
             }
         } catch (JMSException e) {
             throw new RuntimeException(e);
