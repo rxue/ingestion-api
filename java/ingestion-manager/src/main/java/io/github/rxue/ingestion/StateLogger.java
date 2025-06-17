@@ -1,17 +1,16 @@
 package io.github.rxue.ingestion;
 
-import java.lang.reflect.InvocationHandler;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
+
 import java.lang.reflect.Method;
 
-public class StateLogger implements InvocationHandler {
-    private final Object proxied;
-    public StateLogger(Object proxied) {
-        this.proxied = proxied;
-    }
+public class StateLogger implements MethodInterceptor {
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        System.out.println("StateLogger Dynamic proxy invoked when invoking method " + method.getName());
-        return method.invoke(proxy, args);
+    public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        System.out.println("Came into interceptor from method " + method.getName());
+        return methodProxy.invokeSuper(o, args);
     }
 }

@@ -29,6 +29,10 @@ public class MessageCounter {
         }
     }
 
+    public void test() {
+        System.out.println("test");
+    }
+
     public Map<String,Long> getSenderEmailsWithMessageCount() {
         try (Stream<Path> paths = Files.walk(inputDirectory)) {
             return paths.parallel().filter(MessageCounter::isRegularFile)

@@ -2,6 +2,7 @@ package io.github.rxue.ingestion;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,6 +17,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import jakarta.ws.rs.core.HttpHeaders;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
 
 public class HttpFileDownloader {
     public static final long KB = 1024;
@@ -114,5 +119,43 @@ public class HttpFileDownloader {
         public String toRequestHeaderValue() {
             return "bytes=" + start + "-" + end;
         }
+    }
+
+    public static void main(String[] args) throws InstantiationException, IllegalAccessException {
+        /*
+        HttpFileDownloader logging = new ByteBuddy()
+                .subclass(HttpFileDownloader.class)
+                .method(named("download")).intercept(MethodDelegation.to(StateLogger.class))
+                .make()
+                .load(HttpFileDownloader.class.getClassLoader())
+                .getLoaded()
+                .newInstance();
+        logging.download("xxx", MB*100, Path.of("/","Users", "ruixue"));
+        MessageCounter counter = new ByteBuddy()
+                .subclass(MessageCounter.class)
+                .defineMethod("getSendersWithMessageCount", Map.class, java.lang.reflect.Modifier.PUBLIC)
+                .intercept(MethodDelegation.to(StateLogger.class))
+                .method(named("getSendersWithMessageCount")).intercept(MethodDelegation.to(StateLogger.class))
+                .make()
+                .load(MessageCounter.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                .getLoaded()
+                .newInstance();
+        counter.getSendersWithMessageCount();*/
+
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(HttpFileDownloader.class);
+        enhancer.setCallback(new MethodInterceptor() {
+            @Override
+            public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+                System.out.println("Before method: " + method.getName());
+                Object result = proxy.invokeSuper(obj, args);
+                System.out.println("After method: " + method.getName());
+                return result;
+            }
+        });
+
+        HttpFileDownloader httpFileDownloader = (HttpFileDownloader) enhancer.create();
+        httpFileDownloader.download("xxx", MB*100, Path.of("/","Users", "ruixue"));
+
     }
 }
