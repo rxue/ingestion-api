@@ -1,13 +1,12 @@
-package io.github.rxue.executor;
+package io.github.rxue.ingestion;
 
-import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 
-import static io.github.rxue.executor.HttpFileDownloader.MB;
-public class Executor implements Runnable {
+import static io.github.rxue.ingestion.HttpFileDownloader.MB;
+public class IngestionRunner implements Runnable {
     private final Path downloadDirectoryPath;
     private final String dataSourceURL;
-    public Executor(Path downloadDirectoryPath, String dataSourceURL) {
+    public IngestionRunner(Path downloadDirectoryPath, String dataSourceURL) {
         System.out.println("Executor started!!!!!!! DownloadDirectoryPath is " + downloadDirectoryPath + " and source URL is " + dataSourceURL);
         this.downloadDirectoryPath = downloadDirectoryPath;
         this.dataSourceURL = dataSourceURL;
@@ -15,11 +14,13 @@ public class Executor implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Execute");
+        System.out.println("Execute the executor");
+        /*
         HttpFileDownloader httpFileDownloader = (HttpFileDownloader) Proxy.newProxyInstance(
                 HttpFileDownloader.class.getClassLoader(),
                 new Class[]{HttpFileDownloader.class},
-                new StateLogger(new HttpFileDownloader()));
+                new StateLogger(new HttpFileDownloader()));*/
+        HttpFileDownloader httpFileDownloader = new HttpFileDownloader();
         System.out.println("downloader proxy is " + httpFileDownloader);
         httpFileDownloader.download(dataSourceURL, MB * 100, downloadDirectoryPath);
     }

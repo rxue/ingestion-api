@@ -1,4 +1,4 @@
-package io.github.rxue.executor;
+package io.github.rxue.ingestion;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
