@@ -20,7 +20,6 @@ class HttpFileDownloaderIT {
     public static final String TEST_DATA_DIR_STR = "src/test/resources";
     public static final String DOWNLOAD_URL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
     private static final Path DOWNLOAD_DIR = Path.of(TEST_DATA_DIR_STR, "target");
-    public static final int K = 1024;
 
     @BeforeEach
     void initDownloadDir() {
@@ -57,7 +56,7 @@ class HttpFileDownloaderIT {
     void download_with_half_M() throws IOException, ExecutionException, InterruptedException {
         HttpFileDownloader downloader = new HttpFileDownloader();
         final String downloadURL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
-        downloader.download(downloadURL, K * K /2, DOWNLOAD_DIR);
+        downloader.download(downloadURL, HttpFileDownloader.KB * HttpFileDownloader.KB /2, DOWNLOAD_DIR);
         singleThreadDownload(downloadURL, DOWNLOAD_DIR);
         final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(downloadURL));
         assertTrue(Files.exists(downloadedFilePath));
@@ -69,7 +68,7 @@ class HttpFileDownloaderIT {
     @Test
     void download_with_1_M() throws IOException, ExecutionException, InterruptedException {
         HttpFileDownloader downloader = new HttpFileDownloader();
-        downloader.download(DOWNLOAD_URL, K * K, DOWNLOAD_DIR);
+        downloader.download(DOWNLOAD_URL, HttpFileDownloader.KB * HttpFileDownloader.KB, DOWNLOAD_DIR);
         singleThreadDownload(DOWNLOAD_URL, DOWNLOAD_DIR);
         final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URL));
         assertTrue(Files.exists(downloadedFilePath));
@@ -82,7 +81,7 @@ class HttpFileDownloaderIT {
     void download_with_5_K() throws IOException, ExecutionException, InterruptedException {
         HttpFileDownloader downloader = new HttpFileDownloader();
         final String downloadURL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
-        downloader.download(downloadURL, 5*K, DOWNLOAD_DIR);
+        downloader.download(downloadURL, 5* HttpFileDownloader.KB, DOWNLOAD_DIR);
         singleThreadDownload(downloadURL, DOWNLOAD_DIR);
         final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(downloadURL));
         assertTrue(Files.exists(downloadedFilePath));

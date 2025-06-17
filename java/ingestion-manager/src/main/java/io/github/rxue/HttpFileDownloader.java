@@ -18,6 +18,8 @@ import java.util.concurrent.ExecutionException;
 import jakarta.ws.rs.core.HttpHeaders;
 
 public class HttpFileDownloader {
+    public static final long KB = 1024;
+    public static final long MB = KB * KB;
     private final HttpClient httpClient;
 
     public HttpFileDownloader() {
@@ -32,7 +34,6 @@ public class HttpFileDownloader {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("byte lenght::" + byteLength);
         final List<Range> multiPartRanges = divide(byteLength, chunkSize);
         final List<CompletableFuture<byte[]>> allBytes = multiPartRanges.stream()
                 .map(range -> downloadRange(uri, range))
@@ -93,9 +94,7 @@ public class HttpFileDownloader {
                 .get();
 
         int totalSize = results.stream().mapToInt(part -> part.length).sum();
-        System.out.println("Download completed");
         ByteBuffer buffer = ByteBuffer.allocate(totalSize);
-
         for (byte[] part : results) {
             buffer.put(part);
         }
@@ -111,11 +110,5 @@ public class HttpFileDownloader {
         public String toRequestHeaderValue() {
             return "bytes=" + start + "-" + end;
         }
-    }
-
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
-        Path targetDir = Path.of("/Users/ruixue/Downloads/target");
-        HttpFileDownloader downloader = new HttpFileDownloader();
-        downloader.download("https://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz", 1024*1024*100, targetDir);
     }
 }
