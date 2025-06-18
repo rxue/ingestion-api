@@ -7,21 +7,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class Monitor {
-    private final String dataPath;
+    private final Path statusFilePath;
 
-    public Monitor(@ConfigProperty(name = "DATA_PATH") String dataPath) {
-        this.dataPath = dataPath;
+    public Monitor(@ConfigProperty(name = "CONTAINER_STATUS_FILE_PATH") String statusFilePathString) {
+        this.statusFilePath = Path.of(statusFilePathString);
     }
 
-    public String getStatus() throws IOException {
-        Path statusFilePath = Path.of(dataPath, "status.txt");
+    public Optional<String> getStatus() throws IOException {
         if (!Files.exists(statusFilePath)) {
-            return "not started";
+            return Optional.empty();
         }
         List<String> statusLines = Files.readAllLines(statusFilePath);
-        return statusLines.get(0);
+        return Optional.of(statusLines.get(0));
     }
 }

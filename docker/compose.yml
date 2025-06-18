@@ -25,6 +25,7 @@ services:
       - QUARKUS_QPID_JMS_USERNAME
       - QUARKUS_QPID_JMS_PASSWORD
       - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:5672
+      - CONTAINER_STATUS_FILE_PATH
     ports:
       - "8080:8080"
     networks:
