@@ -42,6 +42,10 @@ services:
       - QUARKUS_QPID_JMS_USERNAME
       - QUARKUS_QPID_JMS_PASSWORD
       - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:5672
+      - QUARKUS_DATASOURCE_DB_KIND=postgresql
+      - QUARKUS_DATASOURCE_JDBC_URL
+      - QUARKUS_DATASOURCE_USERNAME
+      - QUARKUS_DATASOURCE_PASSWORD
     ports:
       - "8080:8080"
     networks:

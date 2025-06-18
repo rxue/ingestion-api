@@ -1,27 +1,26 @@
 package io.github.rxue;
 
+import io.github.rxue.jpaentity.State;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import jakarta.persistence.EntityManager;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
 public class Monitor {
-    private final Path statusFilePath;
-
-    public Monitor() {
-        this.statusFilePath = null;
+    private final EntityManager entityManager;
+    public Monitor(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     public Optional<String> getStatus() throws IOException {
-        if (!Files.exists(statusFilePath)) {
+        List<State> stateList = entityManager.createQuery("select s from State s", State.class)
+                .getResultList();
+        if (stateList.isEmpty()) {
             return Optional.empty();
         }
-        List<String> statusLines = Files.readAllLines(statusFilePath);
-        return Optional.of(statusLines.get(0));
+        return Optional.of(stateList.get(0).getDescription());
     }
 }

@@ -1,7 +1,7 @@
-package io.github.rxue.ingestion;
+package io.github.rxue.ingestion.log;
 
+import io.github.rxue.ingestion.HttpFileDownloader;
 import io.github.rxue.ingestion.jpaentity.State;
-import io.github.rxue.ingestion.log.Log;
 import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;

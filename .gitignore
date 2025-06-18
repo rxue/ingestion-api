@@ -1,5 +1,6 @@
 .mvn
 .DS_Store
+*.swp
 java/*/*.iml
 java/*/*.idea
 java/*/*.dockerignore
