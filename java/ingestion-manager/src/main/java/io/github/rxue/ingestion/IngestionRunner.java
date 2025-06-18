@@ -1,6 +1,5 @@
 package io.github.rxue.ingestion;
 
-import lombok.Builder;
 import net.sf.cglib.proxy.Enhancer;
 
 import java.nio.file.Path;
