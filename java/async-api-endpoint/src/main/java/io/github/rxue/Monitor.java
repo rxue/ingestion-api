@@ -13,8 +13,8 @@ import java.util.Optional;
 public class Monitor {
     private final Path statusFilePath;
 
-    public Monitor(@ConfigProperty(name = "CONTAINER_STATUS_FILE_PATH") String statusFilePathString) {
-        this.statusFilePath = Path.of(statusFilePathString);
+    public Monitor() {
+        this.statusFilePath = null;
     }
 
     public Optional<String> getStatus() throws IOException {

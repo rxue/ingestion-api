@@ -1,4 +1,21 @@
 services:
+  database:
+    image: postgres
+    container_name: postgres
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      POSTGRES_PASSWORD: ${QUARKUS_DATASOURCE_PASSWORD}
+    networks:
+      - ingestion-net
+
   broker:
     image: quay.io/artemiscloud/activemq-artemis-broker:1.0.25
     container_name: quarkus-broker
@@ -17,15 +34,14 @@ services:
       context: ../java/async-api-endpoint
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: async-api-endpoint
+    restart: always
     volumes:
       - ${HOME_PATH}/dockervolume/ingestion:${CONTAINER_DOWNLOAD_DIR}
     environment:
-      - DATA_PATH=/home/default
       - QUEUE_NAME
       - QUARKUS_QPID_JMS_USERNAME
       - QUARKUS_QPID_JMS_PASSWORD
       - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:5672
-      - CONTAINER_STATUS_FILE_PATH
     ports:
       - "8080:8080"
     networks:
@@ -40,11 +56,14 @@ services:
       - ${HOME_PATH}/dockervolume/ingestion:${CONTAINER_DOWNLOAD_DIR}
     environment:
       - QUEUE_NAME
+      - CONTAINER_DOWNLOAD_DIR
       - QUARKUS_QPID_JMS_USERNAME
       - QUARKUS_QPID_JMS_PASSWORD
       - QUARKUS_QPID_JMS_URL=amqp://quarkus-broker:61616
-      - CONTAINER_DOWNLOAD_DIR
-      - CONTAINER_STATUS_FILE_PATH
+      - QUARKUS_DATASOURCE_DB_KIND=postgresql
+      - QUARKUS_DATASOURCE_JDBC_URL
+      - QUARKUS_DATASOURCE_USERNAME
+      - QUARKUS_DATASOURCE_PASSWORD
     networks:
       - ingestion-net
 
