@@ -9,7 +9,6 @@ import jakarta.inject.Inject;
 import jakarta.jms.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,17 +16,15 @@ import java.util.concurrent.Executors;
 public class Consumer implements Runnable {
     private final ConnectionFactory connectionFactory;
     private final String queueName;
-    private final Path downloadDirectory;
-
     private final ExecutorService executor;
+    private final IngestionRunner ingestionRunner;
 
     @Inject
     public Consumer(ConnectionFactory connectionFactory,
-                    @ConfigProperty(name = "QUEUE_NAME") String queueName,
-                    @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory) {
+                    @ConfigProperty(name = "QUEUE_NAME") String queueName, IngestionRunner ingestionRunner) {
         this.connectionFactory = connectionFactory;
         this.queueName = queueName;
-        this.downloadDirectory = Path.of(downloadDirectory);
+        this.ingestionRunner = ingestionRunner;
         this.executor = Executors.newSingleThreadExecutor();
     }
 
@@ -49,8 +46,7 @@ public class Consumer implements Runnable {
                 if (message == null) {
                     return;
                 }
-                IngestionRunner ingestionRunner = new IngestionRunner(message.getBody(String.class), downloadDirectory);
-                ingestionRunner.run();
+                ingestionRunner.run(message.getBody(String.class));
             }
         } catch (JMSException e) {
             throw new RuntimeException(e);

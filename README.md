@@ -25,3 +25,6 @@ IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyIns
   new Class[]{IHttpFileDownloader.class},
   new StateLogger(new HttpFileDownloader()));
 ```
+### 20250618
+#### It might not be a good idea to mix use of CDI beans or Spring beans in mix with normal business objects initialized with constructor
+#### It is a bad idea to pass a dependency from one class to its instance variable merely because that instance need the dependency but not the current object

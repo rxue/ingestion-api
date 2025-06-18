@@ -16,24 +16,28 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.github.rxue.ingestion.log.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.ws.rs.core.HttpHeaders;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 
+@ApplicationScoped
 public class HttpFileDownloader implements StateDescriber {
     public static final long KB = 1024;
     public static final long MB = KB * KB;
     private final HttpClient httpClient;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public HttpFileDownloader() {
         this.httpClient = HttpClient.newHttpClient();
     }
+    @Log
     public void download(String urlString, long chunkSize, Path targetDirectory) {
         System.out.println("DOWNLOAD!!!!");
         if (!urlString.startsWith("http")) {
-            System.out.println("This is a test, no need to continue");
             return;
         }
         final URI uri =URI.create(urlString);
@@ -124,43 +128,5 @@ public class HttpFileDownloader implements StateDescriber {
         public String toRequestHeaderValue() {
             return "bytes=" + start + "-" + end;
         }
-    }
-
-    public static void main(String[] args) throws InstantiationException, IllegalAccessException {
-        /*
-        HttpFileDownloader logging = new ByteBuddy()
-                .subclass(HttpFileDownloader.class)
-                .method(named("download")).intercept(MethodDelegation.to(StateLogger.class))
-                .make()
-                .load(HttpFileDownloader.class.getClassLoader())
-                .getLoaded()
-                .newInstance();
-        logging.download("xxx", MB*100, Path.of("/","Users", "ruixue"));
-        MessageCounter counter = new ByteBuddy()
-                .subclass(MessageCounter.class)
-                .defineMethod("getSendersWithMessageCount", Map.class, java.lang.reflect.Modifier.PUBLIC)
-                .intercept(MethodDelegation.to(StateLogger.class))
-                .method(named("getSendersWithMessageCount")).intercept(MethodDelegation.to(StateLogger.class))
-                .make()
-                .load(MessageCounter.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
-                .getLoaded()
-                .newInstance();
-        counter.getSendersWithMessageCount();*/
-
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(HttpFileDownloader.class);
-        enhancer.setCallback(new MethodInterceptor() {
-            @Override
-            public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-                System.out.println("Before method: " + method.getName());
-                Object result = proxy.invokeSuper(obj, args);
-                System.out.println("After method: " + method.getName());
-                return result;
-            }
-        });
-
-        HttpFileDownloader httpFileDownloader = (HttpFileDownloader) enhancer.create();
-        httpFileDownloader.download("xxx", MB*100, Path.of("/","Users", "ruixue"));
-
     }
 }
