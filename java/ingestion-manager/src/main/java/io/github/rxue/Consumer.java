@@ -14,22 +14,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @ApplicationScoped
-public class Dispatcher implements Runnable {
+public class Consumer implements Runnable {
     private final ConnectionFactory connectionFactory;
-
     private final String queueName;
+    private final Path downloadDirectory;
 
-    private final String downloadDirectory;
-
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor;
 
     @Inject
-    public Dispatcher(ConnectionFactory connectionFactory,
-                      @ConfigProperty(name = "QUEUE_NAME") String queueName,
-                      @ConfigProperty(name = "DOWNLOAD_DIR") String downloadDirectory) {
+    public Consumer(ConnectionFactory connectionFactory,
+                    @ConfigProperty(name = "QUEUE_NAME") String queueName,
+                    @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory) {
         this.connectionFactory = connectionFactory;
         this.queueName = queueName;
-        this.downloadDirectory = downloadDirectory;
+        this.downloadDirectory = Path.of(downloadDirectory);
+        this.executor = Executors.newSingleThreadExecutor();
     }
 
     void onStart(@Observes StartupEvent ev) {
@@ -50,7 +49,7 @@ public class Dispatcher implements Runnable {
                 if (message == null) {
                     return;
                 }
-                IngestionRunner ingestionRunner = new IngestionRunner(Path.of(downloadDirectory), message.getBody(String.class));
+                IngestionRunner ingestionRunner = new IngestionRunner(message.getBody(String.class), downloadDirectory);
                 ingestionRunner.run();
             }
         } catch (JMSException e) {

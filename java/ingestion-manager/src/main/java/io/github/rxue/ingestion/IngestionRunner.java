@@ -1,42 +1,43 @@
 package io.github.rxue.ingestion;
 
+import lombok.Builder;
 import net.sf.cglib.proxy.Enhancer;
 
 import java.nio.file.Path;
 
 import static io.github.rxue.ingestion.HttpFileDownloader.MB;
+
 public class IngestionRunner implements Runnable {
-    private final Path downloadDirectoryPath;
     private final String dataSourceURL;
-    public IngestionRunner(Path downloadDirectoryPath, String dataSourceURL) {
-        System.out.println("Executor started!!!!!!! DownloadDirectoryPath is " + downloadDirectoryPath + " and source URL is " + dataSourceURL);
-        this.downloadDirectoryPath = downloadDirectoryPath;
+    private final Path downloadDirectoryPath;
+    public IngestionRunner(String dataSourceURL, Path downloadDirectoryPath) {
         this.dataSourceURL = dataSourceURL;
+        this.downloadDirectoryPath = downloadDirectoryPath;
     }
 
     @Override
     public void run() {
         System.out.println("Execute the executor");
-        StateLogger stateLogger = new StateLogger();
-        HttpFileDownloader httpFileDownloader = getHttpFileDownloader(stateLogger);
+        StatusLogger statusLogger = new StatusLogger();
+        HttpFileDownloader httpFileDownloader = getHttpFileDownloader(statusLogger);
         httpFileDownloader.download(dataSourceURL, MB * 100, downloadDirectoryPath);
-        MessageCounter mc = messageCounter(stateLogger);
+        MessageCounter mc = messageCounter(statusLogger);
         System.out.println("going to call test");
         mc.test();
     }
 
-    private static HttpFileDownloader getHttpFileDownloader(StateLogger stateLogger) {
+    private static HttpFileDownloader getHttpFileDownloader(StatusLogger statusLogger) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(HttpFileDownloader.class);
-        enhancer.setCallback(stateLogger);
+        enhancer.setCallback(statusLogger);
         HttpFileDownloader httpFileDownloader = (HttpFileDownloader) enhancer.create();
         return httpFileDownloader;
     }
 
-    private static MessageCounter messageCounter(StateLogger stateLogger) {
+    private static MessageCounter messageCounter(StatusLogger statusLogger) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(MessageCounter.class);
-        enhancer.setCallback(stateLogger);
+        enhancer.setCallback(statusLogger);
         MessageCounter messageCounter = (MessageCounter) enhancer.create(new Class[]{Path.class}, new Path[]{Path.of("")});
         System.out.println("going to return MessageCounter proxy::" + messageCounter);
         return messageCounter;

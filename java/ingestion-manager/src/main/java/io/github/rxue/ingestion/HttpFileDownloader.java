@@ -22,7 +22,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 
-public class HttpFileDownloader {
+public class HttpFileDownloader implements StateDescriber {
     public static final long KB = 1024;
     public static final long MB = KB * KB;
     private final HttpClient httpClient;
@@ -113,6 +113,11 @@ public class HttpFileDownloader {
 
     static String getBaseName(String url) {
         return Path.of(url).getFileName().toString();
+    }
+
+    @Override
+    public String description() {
+        return "Download mail data";
     }
 
     record Range(long start, long end) {
