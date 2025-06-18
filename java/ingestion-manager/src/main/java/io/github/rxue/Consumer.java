@@ -46,7 +46,8 @@ public class Consumer implements Runnable {
                 if (message == null) {
                     return;
                 }
-                ingestionRunner.run(message.getBody(String.class));
+                String receivedString = message.getBody(String.class);
+                ingestionRunner.run(receivedString);
             }
         } catch (JMSException e) {
             throw new RuntimeException(e);

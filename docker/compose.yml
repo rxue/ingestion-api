@@ -19,6 +19,7 @@ services:
   broker:
     image: quay.io/artemiscloud/activemq-artemis-broker:1.0.25
     container_name: quarkus-broker
+    restart: always
     environment:
       - AMQ_USER
       - AMQ_PASSWORD
@@ -57,7 +58,7 @@ services:
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: ingestion-manager
     volumes:
-      - ${HOME_PATH}/dockervolume/ingestion:${CONTAINER_DOWNLOAD_DIR}
+      - ${HOME_PATH}/dockervolume/ingestion/input:${CONTAINER_DOWNLOAD_DIR}
     environment:
       - QUEUE_NAME
       - CONTAINER_DOWNLOAD_DIR

@@ -13,32 +13,29 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import io.github.rxue.ingestion.log.Log;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.enterprise.context.Dependent;
 import jakarta.ws.rs.core.HttpHeaders;
 
 
-@ApplicationScoped
+@Dependent
 public class HttpFileDownloader implements StateDescriber {
     public static final long KB = 1024;
     public static final long MB = KB * KB;
     private final HttpClient httpClient;
-    @PersistenceContext
-    private EntityManager entityManager;
 
     public HttpFileDownloader() {
         this.httpClient = HttpClient.newHttpClient();
     }
     @Log
-    public void download(String urlString, long chunkSize, Path targetDirectory) {
+    public Optional<Path> download(String urlString, long chunkSize, Path targetDirectory) {
         System.out.println("DOWNLOAD!!!!");
         if (!urlString.startsWith("http")) {
-            return;
+            return Optional.empty();
         }
         final URI uri =URI.create(urlString);
         final long byteLength;
@@ -51,12 +48,13 @@ public class HttpFileDownloader implements StateDescriber {
         final List<CompletableFuture<byte[]>> allBytes = multiPartRanges.stream()
                 .map(range -> downloadRange(uri, range))
                 .toList();
-        Path targetFilePath = targetDirectory.resolve(getBaseName(urlString));
+        final Path targetFilePath = targetDirectory.resolve(getBaseName(urlString));
         try {
             Files.write(targetFilePath, combineMultiParts(allBytes));
         } catch (IOException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+        return Optional.of(targetFilePath);
     }
     static long getByteLength(URI url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -121,7 +119,7 @@ public class HttpFileDownloader implements StateDescriber {
 
     @Override
     public String description() {
-        return "Download mail data";
+        return "LOAD mail data";
     }
 
     record Range(long start, long end) {
