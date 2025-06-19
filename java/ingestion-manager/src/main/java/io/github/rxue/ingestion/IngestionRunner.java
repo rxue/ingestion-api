@@ -18,17 +18,20 @@ public class IngestionRunner implements StateDescriber {
     private final TarGZExtractor tarGZExtractor;
     private final MessageTransformer messageTransformer;
     private final Ingestor ingestor;
+    private final Completion completion;
     @Inject
     public IngestionRunner(@ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory,
                            HttpFileDownloader httpFileDownloader,
                            TarGZExtractor tarGZExtractor,
                            MessageTransformer messageTransformer,
-                           Ingestor ingestor) {
+                           Ingestor ingestor,
+                           Completion completion) {
         this.downloadDirectoryPath = Path.of(downloadDirectory);
         this.httpFileDownloader = httpFileDownloader;
         this.tarGZExtractor = tarGZExtractor;
         this.messageTransformer = messageTransformer;
         this.ingestor = ingestor;
+        this.completion = completion;
     }
     @Log
     public void run(String dataSourceURL) {
@@ -41,11 +44,12 @@ public class IngestionRunner implements StateDescriber {
         final Path ingestionInputDirectory = downloadDirectoryPath.resolve("input");
         tarGZExtractor.extract(optionalTarGZFilePath.get(), ingestionInputDirectory);
         Map<String,Long> transformedData = messageTransformer.toFromEmailsWithMessageCount(ingestionInputDirectory);
-        Long totalMessagesProcessed = transformedData.values().stream()
+        final Long totalMessagesProcessed = transformedData.values().stream()
                 .mapToLong(Long::longValue)
                 .sum();
         System.out.println("Total number of messages processed : " + totalMessagesProcessed);
         ingestor.ingest(transformedData);
+        completion.passToInterceptor(totalMessagesProcessed);
     }
 
     @Override

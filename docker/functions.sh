@@ -1,3 +1,11 @@
+restartDatabase() {
+  docker compose down --volumes database 
+  docker compose up -d --build database
+}
+restartJMS() {
+  docker compose down --volumes broker
+  docker compose up -d --build broker
+}
 restartAsyncAPIEndpoint() {
   mvn -f ../java/async-api-endpoint/pom.xml clean package -Dquarkus.package.jar.type=legacy-jar
   if [ $? -ne 0 ]; then

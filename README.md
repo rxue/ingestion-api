@@ -34,4 +34,5 @@ IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyIns
 
 ### 20250619
 #### Postgresql: double-quotation is not allowed in inserted value in the `insert` statement
-#### Don't mix use `Connection` retrieved from an `EntityManager` with that EntityManager
+#### JakartaEE : Don't mix use `Connection` retrieved from an `EntityManager` with that EntityManager
+#### `quarkus` : Any exception thrown by the interceptor class' intercepting method annotated with `@AroundInvoke` is swallowed silently and this would cause the whole application crashed
