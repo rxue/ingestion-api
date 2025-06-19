@@ -1,3 +1,14 @@
+# How to run locally (in MacOS with Docker installed)
+1. after downloading project, `cd` to the `docker` directory
+2. `chmod +x run.sh` so that it is executed as a process
+3. execute `run.sh` with command `./run.sh`
+
+* start request: `curl -X POST http://localhost:8080/start -H "Content-Type: text/plain" -d "https://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz"`
+* request to check status: `curl -s -i -w "\nStatus Code: %{http_code}\n" http://localhost:8080/status`
+* request to check top senders: `curl -s -i -w "\nStatus Code: %{http_code}\n" http://localhost:8080/top-senders`
+
+`ingestion-manager` is the service consuming the jms message sent by the REST API - `async-api-endpoint`. The log of `ingestion-manager` can be monitored with command `docker logs -f ingestion-manager`
+
 # Daybook
 ## Practical lessons learnt
 ### 20250614
