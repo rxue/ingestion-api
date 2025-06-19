@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 @Entity
-public class State {
+public class StatusLog {
     @Id
     private Long id;
     private String description;
