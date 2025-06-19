@@ -58,7 +58,7 @@ services:
       dockerfile: src/main/docker/Dockerfile.legacy-jar
     container_name: ingestion-manager
     volumes:
-      - ${HOME_PATH}/dockervolume/ingestion/input:${CONTAINER_DOWNLOAD_DIR}
+      - ${HOME_PATH}/dockervolume/ingestion:${CONTAINER_DOWNLOAD_DIR}
     environment:
       - QUEUE_NAME
       - CONTAINER_DOWNLOAD_DIR
