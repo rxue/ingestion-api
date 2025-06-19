@@ -1,8 +1,6 @@
 package io.github.rxue.ingestion.log;
 
-import io.github.rxue.ingestion.HttpFileDownloader;
 import io.github.rxue.ingestion.StateDescriber;
-import io.github.rxue.ingestion.TarGZExtractor;
 import io.github.rxue.ingestion.jpaentity.State;
 import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
@@ -50,10 +48,8 @@ public class StatusLogger {
     }
 
     private State getState() {
-        System.out.println("going to get state!!!!!");
         List<State> stateList = entityManager.createQuery("select s from State s", State.class)
                 .getResultList();
-        System.out.println("state result " + stateList);
         if (stateList.isEmpty()) {
             return new State();
         } else {
