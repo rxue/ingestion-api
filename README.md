@@ -19,12 +19,16 @@ When running `mvn package` without `clean`, changes in the `src/main/resources/a
 ### 20250617
 #### `java.lang.reflect.Proxy.newProxyInstance` can only work with class with `interface`
 Example code where `HttpFileDownloader implements IHttpFileDownloader`
+
 ```
 IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyInstance(
   IHttpFileDownloader.class.getClassLoader(),
   new Class[]{IHttpFileDownloader.class},
   new StateLogger(new HttpFileDownloader()));
 ```
+
 ### 20250618
 #### It might not be a good idea to mix use of CDI beans or Spring beans in mix with normal business objects initialized with constructor
 #### It is a bad idea to pass a dependency from one class to its instance variable merely because that instance need the dependency but not the current object
+#### When using JakartaEE interceptor, if the self-defined annotation is used in one class on the class level, i.e. the `TYPE` of the `@Target`, interception of each method on the annotated class will be in a separate thread! and this will affect the use of explicit transaction boundary in `quarkus-narayana-jta`
+
