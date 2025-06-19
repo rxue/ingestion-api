@@ -32,3 +32,6 @@ IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyIns
 #### It is a bad idea to pass a dependency from one class to its instance variable merely because that instance need the dependency but not the current object
 #### When using JakartaEE interceptor, if the self-defined annotation is used in one class on the class level, i.e. the `TYPE` of the `@Target`, interception of each method on the annotated class will be in a separate thread! and this will affect the use of explicit transaction boundary in `quarkus-narayana-jta`
 
+### 20250619
+#### Postgresql: double-quotation is not allowed in inserted value in the `insert` statement
+#### Don't mix use `Connection` retrieved from an `EntityManager` with that EntityManager
