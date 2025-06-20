@@ -17,20 +17,17 @@ public class IngestionRunner implements StateDescriber {
     private final HttpFileDownloader httpFileDownloader;
     private final TarGZExtractor tarGZExtractor;
     private final MessageTransformer messageTransformer;
-    private final Ingestor ingestor;
     private final Completion completion;
     @Inject
     public IngestionRunner(@ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory,
                            HttpFileDownloader httpFileDownloader,
                            TarGZExtractor tarGZExtractor,
                            MessageTransformer messageTransformer,
-                           Ingestor ingestor,
                            Completion completion) {
         this.downloadDirectoryPath = Path.of(downloadDirectory);
         this.httpFileDownloader = httpFileDownloader;
         this.tarGZExtractor = tarGZExtractor;
         this.messageTransformer = messageTransformer;
-        this.ingestor = ingestor;
         this.completion = completion;
     }
     @Log
@@ -48,7 +45,6 @@ public class IngestionRunner implements StateDescriber {
                 .mapToLong(Long::longValue)
                 .sum();
         System.out.println("Total number of messages processed : " + totalMessagesProcessed);
-        ingestor.ingest(transformedData);
         completion.passToInterceptor(totalMessagesProcessed);
     }
 

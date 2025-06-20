@@ -58,6 +58,11 @@
             <artifactId>quarkus-narayana-jta</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkiverse.jberet</groupId>
+            <artifactId>quarkus-jberet</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
         </dependency>

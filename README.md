@@ -47,3 +47,7 @@ IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyIns
 #### Postgresql: double-quotation is not allowed in inserted value in the `insert` statement
 #### JakartaEE : Don't mix use `Connection` retrieved from an `EntityManager` with that EntityManager
 #### `quarkus` : Any exception thrown by the interceptor class' intercepting method annotated with `@AroundInvoke` is swallowed silently and this would cause the whole application crashed
+
+### 20250620
+#### `quarkus-jberet`
+##### `Properties` passed through `JobOperator.start(jobXMLName, properties)` does not work in `quarkus-jberet`-`2.6.0`

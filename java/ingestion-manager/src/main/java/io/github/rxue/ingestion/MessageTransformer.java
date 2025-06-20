@@ -29,7 +29,7 @@ public class MessageTransformer implements StateDescriber {
         }
     }
 
-    public static boolean isRegularFile(Path path) {
+    private static boolean isRegularFile(Path path) {
         try {
             return Files.isRegularFile(path) && !Files.isHidden(path);
         } catch (IOException e) {
