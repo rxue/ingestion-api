@@ -50,4 +50,11 @@ IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyIns
 
 ### 20250620
 #### `quarkus-jberet`
-##### `Properties` passed through `JobOperator.start(jobXMLName, properties)` does not work in `quarkus-jberet`-`2.6.0`
+##### Flaw of `quarkus-jberet`
+ * CDI beans of `ItemReader`/`ItemWriter`/`Batchlet` annotated merely with `@Named` cannot be detected by the CDI framework, `quarkus-arc`, at the moment => workaround: annotate also `@Dependent` to those beans so that CDI framework can recognize and inject during runtime
+ * `Properties` passed through `JobOperator.start(jobXMLName, properties)` does not work in `quarkus-jberet` - `2.6.0`
+
+
+### 20250621
+#### `quarkus-jberet` - `jsr-352` - Batch Application for Java Platform
+#####  
