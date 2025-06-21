@@ -30,7 +30,7 @@ public class MailReader extends AbstractItemReader {
 
     @Override
     public void open(Serializable checkpoint) throws Exception {
-        LOGGER.info("what is opening is " + checkpoint);
+        LOGGER.info("Opened checkpoint is " + checkpoint);
     }
 
     static Iterator<Path> getAllFiles(Path directory) {
@@ -42,6 +42,7 @@ public class MailReader extends AbstractItemReader {
             throw new RuntimeException(e);
         }
     }
+
     public static boolean isRegularFile(Path path) {
         try {
             return Files.isRegularFile(path) && !Files.isHidden(path);

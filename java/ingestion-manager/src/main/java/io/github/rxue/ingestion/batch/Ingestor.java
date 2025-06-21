@@ -26,12 +26,14 @@ public class Ingestor extends AbstractItemWriter {
     private final JobContext jobContext;
     private final StepContext stepContext;
     private final Path inputDirectory;
+    private volatile long processedMails;
     @BatchProperty
     private String downloadURL;
     public Ingestor(JobContext jobContext, StepContext stepContext, @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory) {
         this.jobContext = jobContext;
         this.stepContext = stepContext;
         this.inputDirectory = Path.of(downloadDirectory).resolve("input");
+        this.processedMails = 0;
         LOGGER.info("Construct Ingestor");
     }
 
@@ -42,7 +44,7 @@ public class Ingestor extends AbstractItemWriter {
 
     @Override
     public void close() {
-
+        LOGGER.info("Close Ingestor!!!!!");
     }
 
     @Override
@@ -50,7 +52,6 @@ public class Ingestor extends AbstractItemWriter {
         String jdbcURL = System.getenv("QUARKUS_DATASOURCE_JDBC_URL");
         String username = System.getenv("QUARKUS_DATASOURCE_USERNAME");
         String password = System.getenv("QUARKUS_DATASOURCE_PASSWORD");
-
         try (Connection conn = DriverManager.getConnection(jdbcURL, username, password);
              Statement statement = conn.createStatement()) {
             for (Object senderStatisticObj : mails) {
@@ -69,10 +70,12 @@ public class Ingestor extends AbstractItemWriter {
             LOGGER.error("IO ERROR when writting to database");
             e.printStackTrace();
         }
+        processedMails += mails.size();
     }
 
     @Override
-    public Serializable checkpointInfo() throws Exception {
+    public Serializable checkpointInfo() {
+        LOGGER.info("Checkpoint info: total number of processed mails is " + processedMails);
         return null;
     }
 }
