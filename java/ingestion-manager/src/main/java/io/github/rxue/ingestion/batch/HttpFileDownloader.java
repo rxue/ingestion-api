@@ -1,8 +1,16 @@
-package io.github.rxue.ingestion;
+package io.github.rxue.ingestion.batch;
+
+import jakarta.batch.api.AbstractBatchlet;
+import jakarta.batch.api.BatchProperty;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
+import jakarta.ws.rs.core.HttpHeaders;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,51 +18,61 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import io.github.rxue.ingestion.log.Log;
-import jakarta.enterprise.context.Dependent;
-import jakarta.ws.rs.core.HttpHeaders;
-
-
+@Named
 @Dependent
-public class HttpFileDownloader implements StateDescriber {
-    public static final long KB = 1024;
-    public static final long MB = KB * KB;
+public class HttpFileDownloader extends AbstractBatchlet {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpFileDownloader.class);
+    static final long KB = 1024;
+    static final long MB = KB * KB;
+    public static final String COMPLETE = "COMPLETE";
+    public static final String DOWNLOAD_URL = "download.url";
+    private final URI downloadURI;
+    private final Path downloadToDirectory;
     private final HttpClient httpClient;
-
-    public HttpFileDownloader() {
-        this.httpClient = HttpClient.newHttpClient();
+    private String chunkSizeValue = Long.toString(10 * MB);
+    public HttpFileDownloader(@BatchProperty(name= DOWNLOAD_URL) String downloadURL,
+                              @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadToDirectory,
+                              @BatchProperty(name= "download.chunk.size") String chunkSizeValue) {
+        this.downloadURI = URI.create(downloadURL);
+        this.downloadToDirectory = Path.of(downloadToDirectory);
+        httpClient = HttpClient.newHttpClient();
     }
-    @Log
-    public Optional<Path> download(String urlString, long chunkSize, Path targetDirectory) {
-        System.out.println("DOWNLOAD!!!!");
-        if (!urlString.startsWith("http")) {
-            return Optional.empty();
-        }
-        final URI uri =URI.create(urlString);
+
+    @Override
+    public String process() {
+        LOGGER.info("download from {} to {}", downloadURI, downloadToDirectory);
+        download();
+        return COMPLETE;
+    }
+    private void download() {
         final long byteLength;
         try {
-            byteLength = getByteLength(uri);
+            byteLength = getByteLength(downloadURI);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        final List<Range> multiPartRanges = divide(byteLength, chunkSize);
+        final List<Range> multiPartRanges = divide(byteLength, Long.valueOf(chunkSizeValue));
         final List<CompletableFuture<byte[]>> allBytes = multiPartRanges.stream()
-                .map(range -> downloadRange(uri, range))
+                .map(range -> downloadRange(downloadURI, range))
                 .toList();
-        final Path targetFilePath = targetDirectory.resolve(getBaseName(urlString));
+        final Path targetFilePath = downloadToDirectory.resolve(getBaseName(downloadURI));
         try {
             Files.write(targetFilePath, combineMultiParts(allBytes));
         } catch (IOException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        return Optional.of(targetFilePath);
+    }
+
+    static String getBaseName(URI uri) {
+        String path = uri.getPath();
+        return path.substring(path.lastIndexOf('/') + 1);
     }
     static long getByteLength(URI url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -111,15 +129,6 @@ public class HttpFileDownloader implements StateDescriber {
         }
 
         return buffer.array();
-    }
-
-    static String getBaseName(String url) {
-        return Path.of(url).getFileName().toString();
-    }
-
-    @Override
-    public String description() {
-        return "LOAD mail data";
     }
 
     record Range(long start, long end) {

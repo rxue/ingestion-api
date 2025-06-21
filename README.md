@@ -51,9 +51,8 @@ IHttpFileDownloader httpFileDownloader = (IHttpFileDownloader) Proxy.newProxyIns
 ### 20250620
 #### `quarkus-jberet`
 ##### Flaw of `quarkus-jberet`
- * CDI beans of `ItemReader`/`ItemWriter`/`Batchlet` annotated merely with `@Named` cannot be detected by the CDI framework, `quarkus-arc`, at the moment => workaround: annotate also `@Dependent` to those beans so that CDI framework can recognize and inject during runtime
- * `Properties` passed through `JobOperator.start(jobXMLName, properties)` does not work in `quarkus-jberet` - `2.6.0`
-
+ * CDI beans of `ItemReader`/`ItemWriter`/`Batchlet` annotated merely with `@Named` cannot be detected by the CDI framework, `quarkus-arc`, at the moment => WORKAROUND: annotate those beans with `@Dependent` also so that CDI framework can recognize and inject them during runtime
+ * `Properties` passed through `JobOperator.start(jobXMLName, properties)` does not work in `quarkus-jberet` - `2.6.0`. But developer usually expects to get input of `ItemReader`/`ItemWriter`/`Batchlet` form those properties, thus the developer might have difficulty in passing input to `ItemReader`/`ItemWriter`/`Batchlet` => WORKAROUND: write input location to a constant file or a table in the database
 
 ### 20250621
 #### `quarkus-jberet` - `jsr-352` - Batch Application for Java Platform

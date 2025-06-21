@@ -1,25 +1,36 @@
 package io.github.rxue.ingestion.batch;
 
+import jakarta.batch.api.BatchProperty;
 import jakarta.batch.api.Batchlet;
+import jakarta.batch.runtime.context.JobContext;
 import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Properties;
+
+import static io.github.rxue.ingestion.batch.HttpFileDownloader.DOWNLOAD_URL;
 
 @Named
 @Dependent
 public class TarGZExtractor implements Batchlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(TarGZExtractor.class);
-    private final String tarGZFilePath;
+    private final Path downloadedFilePath;
     private final String extractTargetDirectory;
-    public TarGZExtractor(@ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory) {
-        String fileName = "test.tar.gz";
-        this.tarGZFilePath = Path.of(downloadDirectory).resolve(fileName).toString();
-        this.extractTargetDirectory = formInputDirectory(downloadDirectory).toString();
+
+    @Inject
+    public TarGZExtractor(@BatchProperty(name= DOWNLOAD_URL) String downloadURL, @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadToDirectory) {
+        this.downloadedFilePath = getDownloadedFilePath(downloadURL, downloadToDirectory);
+        LOGGER.info("Downloaded file path: {}", this.downloadedFilePath);
+        this.extractTargetDirectory = null; //formInputDirectory(downloadDirectory).toString();
+    }
+    static Path getDownloadedFilePath(String downloadURL, String downloadToDirectory) {
+        String fileName = Path.of(downloadURL).getFileName().toString();
+        return Path.of(downloadToDirectory, fileName);
     }
 
     static Path formInputDirectory(String downloadDirectory) {
@@ -28,6 +39,8 @@ public class TarGZExtractor implements Batchlet {
 
     @Override
     public String process() throws Exception {
+
+        /*
         ProcessBuilder pb = new ProcessBuilder("tar", "-xzf", tarGZFilePath.toString(), "-C", extractTargetDirectory);
         pb.inheritIO();
         Process process = null;
@@ -46,7 +59,9 @@ public class TarGZExtractor implements Batchlet {
             throw new RuntimeException("extraction failed");
         }
         System.out.println("Completed process");
-        return "DATA_EXTRACTED";
+         */
+        LOGGER.info("Downloaded file path is " + downloadedFilePath);
+        return "DATA_EXTRACTED TERMINATE ON HALF WAY";
     }
 
     @Override

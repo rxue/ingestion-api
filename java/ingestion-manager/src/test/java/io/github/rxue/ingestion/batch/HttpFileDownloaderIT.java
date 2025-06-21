@@ -1,4 +1,4 @@
-package io.github.rxue.ingestion;
+package io.github.rxue.ingestion.batch;
 
 import org.junit.jupiter.api.*;
 
@@ -10,8 +10,9 @@ import java.net.http.HttpResponse;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
 
+import static io.github.rxue.ingestion.batch.HttpFileDownloader.KB;
+import static io.github.rxue.ingestion.batch.HttpFileDownloader.MB;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class HttpFileDownloaderIT {
     public static final String TEST_DATA_DIR_STR = "src/test/resources";
     public static final String DOWNLOAD_URL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
+    public static final URI DOWNLOAD_URI = URI.create(DOWNLOAD_URL);
     private static final Path DOWNLOAD_DIR = Path.of(TEST_DATA_DIR_STR, "target");
 
     @BeforeEach
@@ -53,52 +55,50 @@ class HttpFileDownloaderIT {
     }
 
     @Test
-    void download_with_half_M() throws IOException, ExecutionException, InterruptedException {
-        HttpFileDownloader downloader = new HttpFileDownloader();
-        final String downloadURL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
-        downloader.download(downloadURL, HttpFileDownloader.KB * HttpFileDownloader.KB /2, DOWNLOAD_DIR);
-        singleThreadDownload(downloadURL, DOWNLOAD_DIR);
-        final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(downloadURL));
+    void download_with_half_M() throws IOException, InterruptedException {
+        HttpFileDownloader downloader = new HttpFileDownloader(DOWNLOAD_URL, DOWNLOAD_DIR.toString(), Long.toString(MB/2));
+        downloader.process();
+        singleThreadDownload(DOWNLOAD_URI, DOWNLOAD_DIR);
+        final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URI));
         assertTrue(Files.exists(downloadedFilePath));
-        final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(downloadURL, DOWNLOAD_DIR);
+        final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(DOWNLOAD_URI, DOWNLOAD_DIR);
         assertTrue(Files.exists(singleThreadDownloadedFilePath));
         assertFalse(diff(downloadedFilePath, singleThreadDownloadedFilePath));
     }
 
     @Test
-    void download_with_1_M() throws IOException, ExecutionException, InterruptedException {
-        HttpFileDownloader downloader = new HttpFileDownloader();
-        downloader.download(DOWNLOAD_URL, HttpFileDownloader.KB * HttpFileDownloader.KB, DOWNLOAD_DIR);
-        singleThreadDownload(DOWNLOAD_URL, DOWNLOAD_DIR);
-        final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URL));
+    void download_with_1_M() throws IOException, InterruptedException {
+        HttpFileDownloader downloader = new HttpFileDownloader(DOWNLOAD_URL, DOWNLOAD_DIR.toString(), Long.toString(MB));
+        downloader.process();
+        singleThreadDownload(DOWNLOAD_URI, DOWNLOAD_DIR);
+        final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URI));
         assertTrue(Files.exists(downloadedFilePath));
-        final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(DOWNLOAD_URL, DOWNLOAD_DIR);
+        final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(DOWNLOAD_URI, DOWNLOAD_DIR);
         assertTrue(Files.exists(singleThreadDownloadedFilePath));
         assertFalse(diff(downloadedFilePath, singleThreadDownloadedFilePath));
     }
 
     @Test
-    void download_with_5_K() throws IOException, ExecutionException, InterruptedException {
-        HttpFileDownloader downloader = new HttpFileDownloader();
-        final String downloadURL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
-        downloader.download(downloadURL, 5* HttpFileDownloader.KB, DOWNLOAD_DIR);
-        singleThreadDownload(downloadURL, DOWNLOAD_DIR);
-        final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(downloadURL));
+    void download_with_5_K() throws IOException, InterruptedException {
+        HttpFileDownloader downloader = new HttpFileDownloader(DOWNLOAD_URL, DOWNLOAD_DIR.toString(), Long.toString(KB * 5));
+        downloader.process();
+        singleThreadDownload(DOWNLOAD_URI, DOWNLOAD_DIR);
+        final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URI));
         assertTrue(Files.exists(downloadedFilePath));
-        final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(downloadURL, DOWNLOAD_DIR);
+        final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(DOWNLOAD_URI, DOWNLOAD_DIR);
         assertTrue(Files.exists(singleThreadDownloadedFilePath));
         assertFalse(diff(downloadedFilePath, singleThreadDownloadedFilePath));
     }
 
-    private static void singleThreadDownload(String url, Path downloadDirectory) throws IOException, InterruptedException {
+    private static void singleThreadDownload(URI uri, Path downloadDirectory) throws IOException, InterruptedException {
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(url) )
+                .uri(uri)
                 .GET()
                 .build();
-        HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofFile(getSingleThreadDownloadFilePath(url, downloadDirectory)));
+        HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofFile(getSingleThreadDownloadFilePath(uri, downloadDirectory)));
     }
-    private static Path getSingleThreadDownloadFilePath(String url, Path downloadDirectory) {
-        return downloadDirectory.resolve(HttpFileDownloader.getBaseName(url) + ".original");
+    private static Path getSingleThreadDownloadFilePath(URI uri, Path downloadDirectory) {
+        return downloadDirectory.resolve(HttpFileDownloader.getBaseName(uri) + ".original");
     }
 
     public static boolean diff(Path file1, Path file2) throws IOException {
