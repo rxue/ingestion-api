@@ -1,8 +1,11 @@
-<job id="hello-job" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
-    <step id="step1">
-        <chunk item-count="5">
-            <reader ref="mailReader"/>
-            <writer ref="ingestor"/>
+<job id="ingestion" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
+    <step id="extract">
+        <batchlet ref="tarGZExtractor" />
+    </step>
+    <step id="ingest">
+        <chunk item-count="100000">
+            <reader ref="mailReader" />
+            <writer ref="ingestor" />
         </chunk>
     </step>
 </job>

@@ -15,18 +15,15 @@ import static io.github.rxue.ingestion.HttpFileDownloader.MB;
 public class IngestionRunner implements StateDescriber {
     private final Path downloadDirectoryPath;
     private final HttpFileDownloader httpFileDownloader;
-    private final TarGZExtractor tarGZExtractor;
     private final MessageTransformer messageTransformer;
     private final Completion completion;
     @Inject
     public IngestionRunner(@ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory,
                            HttpFileDownloader httpFileDownloader,
-                           TarGZExtractor tarGZExtractor,
                            MessageTransformer messageTransformer,
                            Completion completion) {
         this.downloadDirectoryPath = Path.of(downloadDirectory);
         this.httpFileDownloader = httpFileDownloader;
-        this.tarGZExtractor = tarGZExtractor;
         this.messageTransformer = messageTransformer;
         this.completion = completion;
     }
@@ -39,7 +36,6 @@ public class IngestionRunner implements StateDescriber {
             return;
         }
         final Path ingestionInputDirectory = downloadDirectoryPath.resolve("input");
-        tarGZExtractor.extract(optionalTarGZFilePath.get(), ingestionInputDirectory);
         Map<String,Long> transformedData = messageTransformer.toFromEmailsWithMessageCount(ingestionInputDirectory);
         final Long totalMessagesProcessed = transformedData.values().stream()
                 .mapToLong(Long::longValue)

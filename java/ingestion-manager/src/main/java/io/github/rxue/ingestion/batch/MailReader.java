@@ -24,7 +24,7 @@ public class MailReader extends AbstractItemReader {
     private Iterator<Path> mails;
 
     public MailReader(@ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadDirectory) {
-        Path inputDirectory = Path.of(downloadDirectory).resolve("input");
+        Path inputDirectory = TarGZExtractor.formInputDirectory(downloadDirectory);
         mails = getAllFiles(inputDirectory);
     }
 
