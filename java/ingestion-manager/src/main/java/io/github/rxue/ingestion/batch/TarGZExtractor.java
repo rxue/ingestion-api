@@ -46,7 +46,7 @@ public class TarGZExtractor implements Batchlet {
             throw new RuntimeException("extraction failed");
         }
         System.out.println("Completed process");
-        return "";
+        return "DATA_EXTRACTED";
     }
 
     @Override

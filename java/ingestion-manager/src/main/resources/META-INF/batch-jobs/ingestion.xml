@@ -1,6 +1,7 @@
 <job id="ingestion" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
     <step id="extract">
         <batchlet ref="tarGZExtractor" />
+        <next on="DATA_EXTRACTE" to="ingest" />
     </step>
     <step id="ingest">
         <chunk item-count="100000">
