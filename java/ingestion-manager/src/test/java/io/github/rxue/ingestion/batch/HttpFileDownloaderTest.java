@@ -1,8 +1,10 @@
 package io.github.rxue.ingestion.batch;
 
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.*;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 import io.github.rxue.ingestion.batch.HttpFileDownloader.Range;
 import static io.github.rxue.ingestion.batch.HttpFileDownloader.divide;
@@ -10,6 +12,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpFileDownloaderTest {
+    @Test
+    void getChunkSize_when_chunk_size_is_null() {
+        assertThat(HttpFileDownloader.getChunkSize(null))
+                .isEqualTo(HttpFileDownloader.MB * 100);
+    }
+
+    @Test
+    void getChunkSize_when_chunk_size_is_defined() {
+        assertThat(HttpFileDownloader.getChunkSize("1000"))
+                .isEqualTo(1000);
+    }
+
+    @Test
+    void getDownloadedFilePath() {
+        String fileName = "enron_mail_20150507.tar.gz";
+        String downloadURL = "https://www.cs.cmu.edu/~enron/" + fileName;
+        String downloadToDirectory = "/home/default";
+        AssertionsForClassTypes.assertThat(HttpFileDownloader.getDownloadedFilePath(downloadURL, downloadToDirectory))
+                .isEqualTo(Path.of(downloadToDirectory, fileName));
+
+    }
 
     @Test
     void getBaseName() {

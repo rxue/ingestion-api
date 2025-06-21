@@ -2,7 +2,6 @@ package io.github.rxue.ingestion.batch;
 
 import jakarta.batch.api.BatchProperty;
 import jakarta.batch.api.Batchlet;
-import jakarta.batch.runtime.context.JobContext;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.Properties;
 
 import static io.github.rxue.ingestion.batch.HttpFileDownloader.DOWNLOAD_URL;
 
@@ -24,13 +22,9 @@ public class TarGZExtractor implements Batchlet {
 
     @Inject
     public TarGZExtractor(@BatchProperty(name= DOWNLOAD_URL) String downloadURL, @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadToDirectory) {
-        this.downloadedFilePath = getDownloadedFilePath(downloadURL, downloadToDirectory);
+        this.downloadedFilePath = HttpFileDownloader.getDownloadedFilePath(downloadURL, downloadToDirectory);
         LOGGER.info("Downloaded file path: {}", this.downloadedFilePath);
         this.extractTargetDirectory = null; //formInputDirectory(downloadDirectory).toString();
-    }
-    static Path getDownloadedFilePath(String downloadURL, String downloadToDirectory) {
-        String fileName = Path.of(downloadURL).getFileName().toString();
-        return Path.of(downloadToDirectory, fileName);
     }
 
     static Path formInputDirectory(String downloadDirectory) {

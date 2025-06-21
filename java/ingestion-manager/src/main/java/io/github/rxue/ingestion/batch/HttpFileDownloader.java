@@ -36,19 +36,37 @@ public class HttpFileDownloader extends AbstractBatchlet {
     private final URI downloadURI;
     private final Path downloadToDirectory;
     private final HttpClient httpClient;
-    private String chunkSizeValue = Long.toString(10 * MB);
+    private final long chunkSizeValue;
     public HttpFileDownloader(@BatchProperty(name= DOWNLOAD_URL) String downloadURL,
                               @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadToDirectory,
                               @BatchProperty(name= "download.chunk.size") String chunkSizeValue) {
-        this.downloadURI = URI.create(downloadURL);
-        this.downloadToDirectory = Path.of(downloadToDirectory);
-        httpClient = HttpClient.newHttpClient();
+        this(URI.create(downloadURL),
+                Path.of(downloadToDirectory),
+                chunkSizeValue,
+                HttpClient.newHttpClient());
+    }
+
+    HttpFileDownloader(URI downloadURI, Path downloadToDirectory, String chunkSize, HttpClient httpClient) {
+        this.downloadURI = downloadURI;
+        this.downloadToDirectory = downloadToDirectory;
+        this.chunkSizeValue = getChunkSize(chunkSize);
+        this.httpClient = httpClient;
+    }
+    static long getChunkSize(String chunkSize) {
+        return chunkSize == null ? MB * 100 : Long.valueOf(chunkSize);
+    }
+
+
+    static Path getDownloadedFilePath(String downloadURL, String downloadToDirectory) {
+        String fileName = Path.of(downloadURL).getFileName().toString();
+        return Path.of(downloadToDirectory, fileName);
     }
 
     @Override
     public String process() {
         LOGGER.info("download from {} to {}", downloadURI, downloadToDirectory);
-        download();
+        if (!Files.exists(getDownloadedFilePath(downloadURI.toString(), downloadToDirectory.toString())))
+            download();
         return COMPLETE;
     }
     private void download() {
@@ -58,7 +76,7 @@ public class HttpFileDownloader extends AbstractBatchlet {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        final List<Range> multiPartRanges = divide(byteLength, Long.valueOf(chunkSizeValue));
+        final List<Range> multiPartRanges = divide(byteLength, chunkSizeValue);
         final List<CompletableFuture<byte[]>> allBytes = multiPartRanges.stream()
                 .map(range -> downloadRange(downloadURI, range))
                 .toList();
@@ -74,12 +92,11 @@ public class HttpFileDownloader extends AbstractBatchlet {
         String path = uri.getPath();
         return path.substring(path.lastIndexOf('/') + 1);
     }
-    static long getByteLength(URI url) throws IOException, InterruptedException {
+    long getByteLength(URI url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(url)
                 .method("HEAD", HttpRequest.BodyPublishers.noBody())
                 .build();
-        HttpClient httpClient = HttpClient.newHttpClient();
         HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
         Map<String, List<String>> map = response.headers().map();
         return map.keySet().stream()
