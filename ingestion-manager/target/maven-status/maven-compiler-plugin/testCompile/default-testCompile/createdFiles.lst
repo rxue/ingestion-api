@@ -1,0 +1,4 @@
+io/github/rxue/ingestion/batch/HttpFileDownloaderTest.class
+io/github/rxue/ingestion/batch/MailReaderTest.class
+io/github/rxue/ingestion/batch/HttpFileDownloaderIT.class
+io/github/rxue/ingestion/MessageTransformerTest.class

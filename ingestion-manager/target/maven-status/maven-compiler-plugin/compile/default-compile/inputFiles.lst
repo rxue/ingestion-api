@@ -1,0 +1,9 @@
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/IngestionResource.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/Main.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/MailRepository.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/SenderStatistic.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/batch/HttpFileDownloader.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/batch/Ingestor.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/batch/MailReader.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/batch/TarGZExtractor.java
+/Users/ruixue/git/github/ingestion-api/ingestion-manager/src/main/java/io/github/rxue/ingestion/jpaentity/Mail.java
