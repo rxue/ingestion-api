@@ -38,10 +38,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.amqphub.quarkus</groupId>
-            <artifactId>quarkus-qpid-jms</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
@@ -52,10 +48,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-narayana-jta</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.jberet</groupId>

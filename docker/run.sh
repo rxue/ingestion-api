@@ -3,6 +3,4 @@
 rm -fr ~/dockervolume/ingestion/*
 mkdir ~/dockervolume/ingestion/input
 restartDatabase
-restartJMS
-restartAsyncAPIEndpoint
 restartIngestionManager
