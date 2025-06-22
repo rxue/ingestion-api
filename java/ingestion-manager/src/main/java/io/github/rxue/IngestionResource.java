@@ -66,13 +66,13 @@ public class IngestionResource {
             BatchStatus batchStatus = jobExecution.getBatchStatus();
             String status = batchStatus.name();
             statusStringBuilder.append(status);
-            statusStringBuilder.append("\n");
             List<StepExecution> stepExecutions = jobOperator.getStepExecutions(jobExecution.getExecutionId());
             StepExecution lastStepExecution = stepExecutions.get(stepExecutions.size() - 1);
+            statusStringBuilder.append(": at " + lastStepExecution.getStepName() + " step").append("\n");
             Metric[] metrics = lastStepExecution.getMetrics();
             StringBuilder metricsBuilder = new StringBuilder();
             for (Metric metric : metrics) {
-                metricsBuilder.append(metric.toString()).append(",");
+                metricsBuilder.append(metric.toString()).append(", ");
             }
             statusStringBuilder.append(metricsBuilder);
             return Response.ok(statusStringBuilder.toString()).build();

@@ -50,9 +50,8 @@ public class TarGZExtractor implements Batchlet {
         if (exitCode != 0) {
             throw new RuntimeException("extraction failed");
         }
-        System.out.println("Completed process");
-        LOGGER.info("Downloaded file path is " + downloadedTarGZPath);
-        return "DATA_EXTRACTED TERMINATE ON HALF WAY";
+        LOGGER.info("Extraction completed ");
+        return COMPLETE;
     }
 
     @Override

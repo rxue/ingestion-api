@@ -86,6 +86,7 @@ public class HttpFileDownloader extends AbstractBatchlet {
         final long byteLength;
         try {
             byteLength = getByteLength(downloadURI);
+            LOGGER.info("dource data length in byte: {}, download in chunk size: {}", byteLength, chunkSize);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -94,6 +95,7 @@ public class HttpFileDownloader extends AbstractBatchlet {
                 .map(range -> downloadRange(downloadURI, range))
                 .toList();
         final Path targetFilePath = downloadToDirectory.resolve(getBaseName(downloadURI));
+        LOGGER.info("Download byte completed and file path is {}", targetFilePath);
         try {
             Files.write(targetFilePath, combineMultiParts(allBytes));
         } catch (IOException | ExecutionException | InterruptedException e) {
