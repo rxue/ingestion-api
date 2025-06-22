@@ -2,7 +2,9 @@ package io.github.rxue.ingestion.batch;
 
 import jakarta.batch.api.AbstractBatchlet;
 import jakarta.batch.api.BatchProperty;
+import jakarta.batch.runtime.context.JobContext;
 import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -18,7 +20,6 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,28 +33,41 @@ public class HttpFileDownloader extends AbstractBatchlet {
     static final long KB = 1024;
     static final long MB = KB * KB;
     public static final String COMPLETE = "COMPLETE";
-    public static final String DOWNLOAD_URL = "download.url";
+    public static final String DOWNLOAD_URL_PROPERTY = "download.url";
     private final URI downloadURI;
-    private final Path downloadToDirectory;
-    private final HttpClient httpClient;
-    private final long chunkSizeValue;
-    public HttpFileDownloader(@BatchProperty(name= DOWNLOAD_URL) String downloadURL,
+    private Path downloadToDirectory;
+    private HttpClient httpClient;
+    private long chunkSize;
+    @Inject
+    public HttpFileDownloader(JobContext jobContext,
                               @ConfigProperty(name = "CONTAINER_DOWNLOAD_DIR") String downloadToDirectory,
-                              @BatchProperty(name= "download.chunk.size") String chunkSizeValue) {
-        this(URI.create(downloadURL),
+                              @BatchProperty(name= "download.chunk.size") String chunkSize) {
+        this(getDownloadURI(jobContext),
                 Path.of(downloadToDirectory),
-                chunkSizeValue,
+                getChunkSize(chunkSize),
                 HttpClient.newHttpClient());
     }
 
-    HttpFileDownloader(URI downloadURI, Path downloadToDirectory, String chunkSize, HttpClient httpClient) {
-        this.downloadURI = downloadURI;
-        this.downloadToDirectory = downloadToDirectory;
-        this.chunkSizeValue = getChunkSize(chunkSize);
-        this.httpClient = httpClient;
+
+    static String getDownloadURL(JobContext jobContext) {
+        return (String) jobContext.getProperties().get(DOWNLOAD_URL_PROPERTY);
     }
+
+    private static URI getDownloadURI(JobContext jobContext) {
+        String downloadURL = getDownloadURL(jobContext);
+        return URI.create(downloadURL);
+    }
+
     static long getChunkSize(String chunkSize) {
         return chunkSize == null ? MB * 100 : Long.valueOf(chunkSize);
+    }
+
+    HttpFileDownloader(URI downloadURI, Path downloadToDirectory,
+                              long chunkSize, HttpClient httpClient) {
+        this.downloadURI = downloadURI;
+        this.downloadToDirectory = downloadToDirectory;
+        this.chunkSize = chunkSize;
+        this.httpClient = httpClient;
     }
 
 
@@ -64,8 +78,7 @@ public class HttpFileDownloader extends AbstractBatchlet {
 
     @Override
     public String process() {
-        LOGGER.info("download from {} to {}", downloadURI, downloadToDirectory);
-        if (!Files.exists(getDownloadedFilePath(downloadURI.toString(), downloadToDirectory.toString())))
+        if (!Files.exists(getDownloadedFilePath(downloadURI.getPath().toString(), downloadToDirectory.toString())))
             download();
         return COMPLETE;
     }
@@ -76,7 +89,7 @@ public class HttpFileDownloader extends AbstractBatchlet {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        final List<Range> multiPartRanges = divide(byteLength, chunkSizeValue);
+        final List<Range> multiPartRanges = divide(byteLength, chunkSize);
         final List<CompletableFuture<byte[]>> allBytes = multiPartRanges.stream()
                 .map(range -> downloadRange(downloadURI, range))
                 .toList();

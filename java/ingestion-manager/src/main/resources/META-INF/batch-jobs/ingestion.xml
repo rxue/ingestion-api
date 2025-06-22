@@ -1,19 +1,17 @@
 <job id="ingestion" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
+    <properties>
+        <property name="download.url" value="#{jobParameters['download.url']}"/>
+    </properties>
     <step id="load">
         <batchlet ref="httpFileDownloader">
             <properties>
-                <property name="download.url" value="#{jobParameters['download.url']}"/>
                 <property name="download.chunk.size" value="#{jobParameters['download.chunk.size']}"/>
             </properties>
         </batchlet>
         <next on="COMPLETE" to="extract" />
     </step>
     <step id="extract">
-        <batchlet ref="tarGZExtractor">
-            <properties>
-                <property name="tar.gz.path" value="#{jobParameters['tar.gz.path']}"/>
-            </properties>
-        </batchlet>
+        <batchlet ref="tarGZExtractor" />
         <next on="COMPLETE" to="ingest" />
     </step>
     <step id="ingest">

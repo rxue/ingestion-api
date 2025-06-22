@@ -1,6 +1,10 @@
 package io.github.rxue.ingestion.batch;
 
+import jakarta.batch.runtime.context.JobContext;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.net.URI;
@@ -10,19 +14,30 @@ import java.net.http.HttpResponse;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Properties;
 
-import static io.github.rxue.ingestion.batch.HttpFileDownloader.KB;
-import static io.github.rxue.ingestion.batch.HttpFileDownloader.MB;
+import static io.github.rxue.ingestion.batch.HttpFileDownloader.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 class HttpFileDownloaderIT {
     public static final String TEST_DATA_DIR_STR = "src/test/resources";
     public static final String DOWNLOAD_URL = "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar";
     public static final URI DOWNLOAD_URI = URI.create(DOWNLOAD_URL);
     private static final Path DOWNLOAD_DIR = Path.of(TEST_DATA_DIR_STR, "target");
-
+    private JobContext mockJobContext() {
+        return mockJobContext(DOWNLOAD_URL);
+    }
+    private JobContext mockJobContext(String downloadURL) {
+        JobContext mockedJobContext = mock(JobContext.class);
+        Properties properties = new Properties();
+        properties.setProperty(DOWNLOAD_URL_PROPERTY, downloadURL);
+        when(mockedJobContext.getProperties()).thenReturn(properties);
+        return mockedJobContext;
+    }
     @BeforeEach
     void initDownloadDir() {
         if (Files.exists(DOWNLOAD_DIR)) {
@@ -56,7 +71,7 @@ class HttpFileDownloaderIT {
 
     @Test
     void download_with_half_M() throws IOException, InterruptedException {
-        HttpFileDownloader downloader = new HttpFileDownloader(DOWNLOAD_URL, DOWNLOAD_DIR.toString(), Long.toString(MB/2));
+        HttpFileDownloader downloader = new HttpFileDownloader(mockJobContext(), DOWNLOAD_DIR.toString(), Long.toString(MB/2));
         downloader.process();
         singleThreadDownload(DOWNLOAD_URI, DOWNLOAD_DIR);
         final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URI));
@@ -68,7 +83,7 @@ class HttpFileDownloaderIT {
 
     @Test
     void download_with_1_M() throws IOException, InterruptedException {
-        HttpFileDownloader downloader = new HttpFileDownloader(DOWNLOAD_URL, DOWNLOAD_DIR.toString(), Long.toString(MB));
+        HttpFileDownloader downloader = new HttpFileDownloader(mockJobContext(), DOWNLOAD_DIR.toString(), Long.toString(MB));
         downloader.process();
         singleThreadDownload(DOWNLOAD_URI, DOWNLOAD_DIR);
         final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URI));
@@ -79,8 +94,8 @@ class HttpFileDownloaderIT {
     }
 
     @Test
-    void download_with_5_K() throws IOException, InterruptedException {
-        HttpFileDownloader downloader = new HttpFileDownloader(DOWNLOAD_URL, DOWNLOAD_DIR.toString(), Long.toString(KB * 5));
+    void download_with_QUARTER_MB() throws IOException, InterruptedException {
+        HttpFileDownloader downloader = new HttpFileDownloader(mockJobContext(), DOWNLOAD_DIR.toString(), Long.toString(MB / 4));
         downloader.process();
         singleThreadDownload(DOWNLOAD_URI, DOWNLOAD_DIR);
         final Path downloadedFilePath = DOWNLOAD_DIR.resolve(HttpFileDownloader.getBaseName(DOWNLOAD_URI));
@@ -88,6 +103,18 @@ class HttpFileDownloaderIT {
         final Path singleThreadDownloadedFilePath = getSingleThreadDownloadFilePath(DOWNLOAD_URI, DOWNLOAD_DIR);
         assertTrue(Files.exists(singleThreadDownloadedFilePath));
         assertFalse(diff(downloadedFilePath, singleThreadDownloadedFilePath));
+    }
+
+    @Test
+    void process_when_file_is_already_downloaded(@Mock HttpClient mockedHttpClient) throws IOException, InterruptedException {
+        String fileName = "sample.tar.gz";
+        URI downloadURI = URI.create("http://dummyhost/" + fileName);
+        Path downloadToDirectory = Path.of(TEST_DATA_DIR_STR);
+
+        HttpFileDownloader httpFileDownloader = new HttpFileDownloader(downloadURI,
+                downloadToDirectory, 100, mockedHttpClient);
+        httpFileDownloader.process();
+        verify(mockedHttpClient, never()).send(any(), any());
     }
 
     private static void singleThreadDownload(URI uri, Path downloadDirectory) throws IOException, InterruptedException {
