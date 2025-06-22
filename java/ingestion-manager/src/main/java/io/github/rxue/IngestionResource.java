@@ -7,6 +7,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ public class IngestionResource {
     @Path("start")
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    public void start(String downloadURL) {
+    public Response start(String downloadURL) {
         Set<String> jobNames = jobOperator.getJobNames();
         if (jobNames.isEmpty()) {
             System.out.println("Dispatcher with THREAD ID: " + Thread.currentThread().getId());
@@ -38,10 +39,12 @@ public class IngestionResource {
             properties.setProperty(DOWNLOAD_URL_PROPERTY, downloadURL);
             long executionId = jobOperator.start(JOB_NAME, properties);
             LOGGER.info("job started by JobOperator");
-            JobExecution jobExecution = jobOperator.getJobExecution(executionId);
-            LOGGER.info("Final batch Status: " + jobExecution.getBatchStatus().name());
+            return Response.ok().build();
         } else {
             LOGGER.info("running already");
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("task started already")
+                    .build();
         }
     }
 
