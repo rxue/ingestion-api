@@ -1,6 +1,7 @@
 package io.github.rxue;
 
 import io.github.rxue.ingestion.MailRepository;
+import io.github.rxue.ingestion.SenderStatistic;
 import io.github.rxue.ingestion.jpaentity.Mail;
 import jakarta.batch.operations.JobOperator;
 import jakarta.batch.runtime.*;
@@ -20,6 +21,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import static io.github.rxue.ingestion.batch.HttpFileDownloader.DOWNLOAD_URL_PROPERTY;
+import static java.util.stream.Collectors.joining;
 
 @Path("/")
 public class IngestionResource {
@@ -73,7 +75,7 @@ public class IngestionResource {
             statusStringBuilder.append(status);
             List<StepExecution> stepExecutions = jobOperator.getStepExecutions(jobExecution.getExecutionId());
             StepExecution lastStepExecution = stepExecutions.get(stepExecutions.size() - 1);
-            statusStringBuilder.append(": at " + lastStepExecution.getStepName() + " step").append("\n");
+            statusStringBuilder.append(" step " + lastStepExecution.getStepName()).append("\n");
             Metric[] metrics = lastStepExecution.getMetrics();
             StringBuilder metricsBuilder = new StringBuilder();
             for (Metric metric : metrics) {
@@ -88,10 +90,11 @@ public class IngestionResource {
     @Path("top-senders")
     @GET
     public Response getResult() {
-        Map<String,Long> results = mailRepository.getTopTenSenders();
-        StringBuilder resultBuilder = new StringBuilder();
-        results.forEach((fromEmail, messageCount) -> resultBuilder.append(fromEmail + ": " + messageCount + " times").append("\n"));
-        return results.isEmpty() ? Response.noContent().build() : Response.ok(resultBuilder.toString()).build();
+        List<SenderStatistic> results = mailRepository.getTopTenSenders();
+        String resultString = results.stream()
+                .map(SenderStatistic::toString)
+                .collect(joining("\n"));
+        return results.isEmpty() ? Response.noContent().build() : Response.ok(resultString).build();
     }
 
 }
