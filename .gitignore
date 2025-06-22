@@ -15,3 +15,4 @@ java/ingestion-manager/mvnw.cmd
 java/ingestion-manager/src/main/docker/Dockerfile.jvm
 java/ingestion-manager/src/main/docker/Dockerfile.native
 java/ingestion-manager/src/main/docker/Dockerfile.native-micro
+java/ingestion-manager/src/main/resources/jberet-postgresql.ddl
