@@ -23,7 +23,7 @@ configIngestionManagerJobRepository() {
     echo "file does not exist yet!"
     return
   fi
-  projectDir=../java/ingestion-manager
+  projectDir=../ingestion-manager
   projectResourcesDir=${projectDir}/src/main/resources
   mv $ddlFileName ${projectResourcesDir}
   quarkusDDLProperty=quarkus.jberet.repository.jdbc.ddl-file
