@@ -1,5 +1,7 @@
 package io.github.rxue;
 
+import io.github.rxue.ingestion.MailRepository;
+import io.github.rxue.ingestion.jpaentity.Mail;
 import jakarta.batch.operations.JobOperator;
 import jakarta.batch.runtime.*;
 import jakarta.inject.Inject;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -23,10 +26,12 @@ public class IngestionResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(IngestionResource.class);
     public static final String JOB_NAME = "ingestion";
     private final JobOperator jobOperator;
+    private final MailRepository mailRepository;
 
     @Inject
-    public IngestionResource(JobOperator jobOperator) {
+    public IngestionResource(JobOperator jobOperator, MailRepository mailRepository) {
         this.jobOperator = jobOperator;
+        this.mailRepository = mailRepository;
     }
 
     @Path("start")
@@ -54,7 +59,7 @@ public class IngestionResource {
 
     @Path("status")
     @GET
-    public Response getStatue() {
+    public Response getStatus() {
         StringBuilder statusStringBuilder = new StringBuilder();
         if (hasNoRunningJob())
             return Response.noContent().build();
@@ -78,6 +83,15 @@ public class IngestionResource {
             return Response.ok(statusStringBuilder.toString()).build();
         }
         throw new IllegalStateException("Never expected to come here");
+    }
+
+    @Path("top-senders")
+    @GET
+    public Response getResult() {
+        Map<String,Long> results = mailRepository.getTopTenSenders();
+        StringBuilder resultBuilder = new StringBuilder();
+        results.forEach((fromEmail, messageCount) -> resultBuilder.append(fromEmail + ": " + messageCount + " times").append("\n"));
+        return results.isEmpty() ? Response.noContent().build() : Response.ok(resultBuilder.toString()).build();
     }
 
 }
