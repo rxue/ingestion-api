@@ -11,12 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
+import java.util.Set;
 
 import static io.github.rxue.ingestion.batch.HttpFileDownloader.DOWNLOAD_URL_PROPERTY;
 
 @Path("/")
 public class IngestionResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(IngestionResource.class);
+    public static final String JOB_NAME = "ingestion";
     private final JobOperator jobOperator;
 
     @Inject
@@ -28,15 +30,22 @@ public class IngestionResource {
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
     public void start(String downloadURL) {
-        System.out.println("Dispatcher with THREAD ID: " + Thread.currentThread().getId());
-        LOGGER.info("received url: " + downloadURL);
-        Properties properties = new Properties();
-        properties.setProperty(DOWNLOAD_URL_PROPERTY, downloadURL);
-        long executionId = jobOperator.start("ingestion", properties);
-        LOGGER.info("job started by JobOperator");
-        JobExecution jobExecution = jobOperator.getJobExecution(executionId);
-        LOGGER.info("Final batch Status: " + jobExecution.getBatchStatus().name());
+        Set<String> jobNames = jobOperator.getJobNames();
+        if (jobNames.isEmpty()) {
+            System.out.println("Dispatcher with THREAD ID: " + Thread.currentThread().getId());
+            LOGGER.info("received url: " + downloadURL);
+            Properties properties = new Properties();
+            properties.setProperty(DOWNLOAD_URL_PROPERTY, downloadURL);
+            long executionId = jobOperator.start(JOB_NAME, properties);
+            LOGGER.info("job started by JobOperator");
+            JobExecution jobExecution = jobOperator.getJobExecution(executionId);
+            LOGGER.info("Final batch Status: " + jobExecution.getBatchStatus().name());
+        } else {
+            LOGGER.info("running already");
+        }
     }
+
+
 
 
 }
