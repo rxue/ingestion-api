@@ -16,11 +16,11 @@ services:
     networks:
       - ingestion-net
 
-  ingestion-manager:
+  ingestion-backend:
     build:
-      context: ../ingestion-manager
+      context: ../ingestion-backend
       dockerfile: src/main/docker/Dockerfile.legacy-jar
-    container_name: ingestion-manager
+    container_name: ingestion-backend
     volumes:
       - ${HOME_PATH}/dockervolume/ingestion:${CONTAINER_DOWNLOAD_DIR}
     environment:

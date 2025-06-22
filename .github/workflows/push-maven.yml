@@ -25,7 +25,5 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-    - name: test async-api-endpoint module
-      run: mvn -B --file java/async-api-endpoint/pom.xml clean test
-    - name: test ingestion-manager module
-      run: mvn -B --file java/ingestion-manager/pom.xml clean test
+    - name: test ingestion-backend
+      run: mvn -B --file java/ingestion-backend/pom.xml clean test

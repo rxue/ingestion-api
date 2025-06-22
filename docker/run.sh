@@ -2,4 +2,4 @@
 . functions.sh
 mkdir ~/dockervolume/ingestion/input
 restartDatabase
-restartIngestionManager
+restartIngestionBackend
