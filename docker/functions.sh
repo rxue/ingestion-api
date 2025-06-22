@@ -1,6 +1,14 @@
 restartDatabase() {
   docker compose down --volumes database 
   docker compose up -d --build database
+  downloadURL=https://raw.githubusercontent.com/jberet/jsr352/refs/heads/main/jberet-core/src/main/resources/sql/jberet-postgresql.ddl
+  ddlFileName=`basename $downloadURL`
+  echo "Download ddl script ${ddlFileName} for generating status tracking tables used by quarkus-jberet JobRepository"
+  curl -O $downloadURL
+  sed -i '' 's/!!/;/g' $ddlFileName
+  sleep 2
+  echo "Run the ddl script"
+  docker exec -i postgres psql -U postgres -d postgres < $ddlFileName
 }
 restartJMS() {
   docker compose down --volumes broker

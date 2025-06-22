@@ -3,20 +3,21 @@ package io.github.rxue;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.batch.operations.JobOperator;
+import jakarta.batch.runtime.BatchStatus;
 import jakarta.batch.runtime.JobExecution;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.jms.*;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jberet.repository.JobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.nio.file.Path;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static io.github.rxue.ingestion.batch.HttpFileDownloader.DOWNLOAD_URL_PROPERTY;
 
@@ -27,13 +28,15 @@ public class Consumer implements Runnable {
     private final String queueName;
     private final ExecutorService executor;
     private final JobOperator jobOperator;
-
+    private final JobRepository jobRepository;
     @Inject
     public Consumer(ConnectionFactory connectionFactory,
-                    @ConfigProperty(name = "QUEUE_NAME") String queueName, JobOperator jobOperator) {
+                    @ConfigProperty(name = "QUEUE_NAME") String queueName,
+                    JobOperator jobOperator,JobRepository jobRepository) {
         this.connectionFactory = connectionFactory;
         this.queueName = queueName;
         this.jobOperator = jobOperator;
+        this.jobRepository = jobRepository;
         this.executor = Executors.newSingleThreadExecutor();
     }
 
@@ -62,9 +65,19 @@ public class Consumer implements Runnable {
                 long executionId = jobOperator.start("ingestion", properties);
                 LOGGER.info("job started by JobOperator");
                 JobExecution jobExecution = jobOperator.getJobExecution(executionId);
-                LOGGER.info("JobExecution: " + jobExecution.getJobName());
+
+                while (true) {
+                    BatchStatus batchStatus = jobExecution.getBatchStatus();
+                    LOGGER.info("Current batch Status: " + batchStatus.name());
+                    TimeUnit.SECONDS.sleep(20);
+                    if ("COMPLETED".equals(batchStatus.name())) break;
+                }
+
+                LOGGER.info("Final batch Status: " + jobExecution.getBatchStatus().name());
             }
         } catch (JMSException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
