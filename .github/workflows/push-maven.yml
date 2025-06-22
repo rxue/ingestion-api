@@ -26,4 +26,4 @@ jobs:
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: test ingestion-backend
-      run: mvn -B --file java/ingestion-backend/pom.xml clean test
+      run: mvn -B --file ingestion-backend/pom.xml clean test
